@@ -1,6 +1,9 @@
-# Install module
+### Install module
 
-## Requirements
+#### Build package (optional)
+    git clone https://github.com/ninech/django-netbox-graphql
+    cd django-netbox-graphql
+    python setup.py sdist
 
 #### This module realise on modules:
     graphene-django>=1.0
@@ -8,7 +11,9 @@
  
 #### Install module:
 
-    pip install django-netbox-graphql
+    pip install django-netbox-graphql #from external storage, not yet deployed
+    or     
+    pip install dist/django-netbox-graphql-0.0.x.tar.gz
 
 #### Configure project
 
