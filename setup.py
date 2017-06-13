@@ -16,7 +16,7 @@ setup(
     description='Django module which provides a GraphQL API for Netbox (For django 1.11)',
     long_description=README,
     url='https://github.com/ninech/django-netbox-graphql',
-    author='Nine.ch',
+    author='nine.ch',
     author_email='dev@nine.ch',
     classifiers=[
         'Environment :: Web Environment',
