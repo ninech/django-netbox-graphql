@@ -18,8 +18,9 @@ Quick start
     'netbox-graphql',
     ]
 
-3. Add graphene schema to netbox/setting.py::
+3. Add graphene settings to netbox/setting.py::
 
+    GRAPHIQL_ENABLED = True # optional, by default True, set False to disable it
     GRAPHENE = {
         'SCHEMA' : 'netbox-graphql.schema.schema', #points to the netbox-graphql schema variable in schema.py
         'SCHEMA_INDENT': 2, #defines the indentation space in the output
