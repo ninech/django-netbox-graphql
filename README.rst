@@ -4,6 +4,8 @@ django-netbox-graphql
 
 Netbox-Graphql is a simple Django app which provides a GraphQL API for Netbox.
 
+.. image:: https://s11.postimg.org/5vi9lmn1f/django-netbox-graphql.png
+
 Build package (optional)
 ------------------------
 
@@ -51,3 +53,10 @@ PYPI Distribution
 -----------------
 
 Can be found at https://pypi.python.org/pypi?:action=display&name=django-netbox-graphql&version=0.0.1
+
+About
+-----
+This module is currently maintained and funded by `nine.ch <https://nine.ch>`_
+
+.. image:: https://blog.nine.ch/assets/logo.png
+ :target: https://nine.ch
