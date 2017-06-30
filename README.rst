@@ -4,8 +4,6 @@ django-netbox-graphql
 
 Netbox-Graphql is a simple Django app which provides a GraphQL API for Netbox.
 
-.. image:: https://s11.postimg.org/5vi9lmn1f/django-netbox-graphql.png
-
 Build package (optional)
 ------------------------
 
@@ -47,12 +45,35 @@ Quick start
 
     url(r'^graphql', include('netbox-graphql.urls')),
 
-5. Visit http://127.0.0.1:8000/graphql to get graphQL editor.
+5. Visit http://127.0.0.1:8000/graphql to fetch records with graphql::
+
+    curl -H "Authorization: Token <netbox_token>" http://localhost:8000/graphql?query=query%7B%20types%20%7B%20edges%20%7B%20node%20%7B%20name%20%7D%20%7D%20%7D%20%7D
+
+Visit http://localhost:8000/user/api-tokens/ to generate token
+
+Graphql editor for writing queries
+----------------------------------
+
+1. You should have installed `graphene_django`::
+
+    INSTALLED_APPS = [
+    ...
+    'graphene_django',
+    ]
+
+2. Create url for graphql client with adding new link in `urls.py` ::
+
+    url(r'^graphql/client', GraphQLView.as_view(graphiql=True)),
+
+3. Visit http://127.0.0.1:8000/graphql/client ::
+
+.. image:: https://s11.postimg.org/5vi9lmn1f/django-netbox-graphql.png
+
 
 PYPI Distribution
 -----------------
 
-Can be found at https://pypi.python.org/pypi?:action=display&name=django-netbox-graphql&version=0.0.1
+Can be found at https://pypi.python.org/pypi?:action=display&name=django-netbox-graphql&version=0.0.2
 
 About
 -----
