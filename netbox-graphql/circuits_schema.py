@@ -43,6 +43,7 @@ class CircuitTypeNode(DjangoObjectType):
         model = CircuitType
         interfaces = (Node, )
         filter_fields = {
+            'id': ['exact'],
             'name': string_types,
             'slug': string_types,
         }
@@ -51,7 +52,7 @@ class CircuitTypeNode(DjangoObjectType):
 # Queries
 class CircuitsQuery(AbstractType):
     providers = DjangoFilterConnectionField(ProviderNode)
-    types = DjangoFilterConnectionField(CircuitTypeNode)
+    circuit_types = DjangoFilterConnectionField(CircuitTypeNode)
     circuit = Node.Field(CircuitNode)
     circuits = DjangoFilterConnectionField(CircuitNode)
 

@@ -47,9 +47,44 @@ Quick start
 
 5. Visit http://127.0.0.1:8000/graphql to fetch records with graphql::
 
-    curl -H "Authorization: Token <netbox_token>" http://localhost:8000/graphql?query=query%7B%20types%20%7B%20edges%20%7B%20node%20%7B%20name%20%7D%20%7D%20%7D%20%7D
+    curl  -H 'Content-Type: application/json'\
+     -H "Authorization: Token <netbox_token>"\
+      -XPOST -d '{"query":"{ circuitTypes { edges { node { id name slug } } } }"}' http://localhost:8000/graphql
 
 Visit http://localhost:8000/user/api-tokens/ to generate token
+
+Graphql CRUD examples
+---------------------
+
+Create::
+
+    curl -H 'Content-Type: application/json'\
+     -H "Authorization: Token <netbox_token>"\
+      -XPOST -d '{"query":"mutation { newCircuitType(input: {name: \"Type1\", slug: \"type1\"}) { circuitType { id name slug } } }"}' http://localhost:8000/graphql
+
+    {"data":{"newCircuitType":{"circuitType":{"id":"Q2lyY3VpdFR5cGVOb2RlOjI1","name":"Type1","slug":"type1"}}}}
+Read::
+
+    curl -H 'Content-Type: application/json'\
+     -H "Authorization: Token <netbox_token>"\
+      -XPOST -d '{"query":"{ circuitTypes(id: \"<circuit-type-id>\") { edges { node { id name slug } } } }"}' http://localhost:8000/graphql
+
+    {"data":{"circuitTypes":{"edges":[{"node":{"id":"Q2lyY3VpdFR5cGVOb2RlOjI0","name":"Type","slug":"type"}}]}}}
+Update::
+
+    curl -H 'Content-Type: application/json'\
+     -H "Authorization: Token <netbox_token>"\
+      -XPOST -d '{"query":"mutation { updateCircuitType(input: {id:\"<circuit-type-id>\", name: \"TypeX\", slug: \"typeX\"}) { circuitType { slug name slug } } }"}' http://localhost:8000/graphql
+
+    {"data":{"updateCircuitType":{"circuitType":{"id":"Q2lyY3VpdFR5cGVOb2RlOjI0","name":"TypeX","slug":"typeX"}}}}
+
+Delete::
+
+    curl -H 'Content-Type: application/json'\
+     -H "Authorization: Token <netbox_token>"\
+      -XPOST -d '{"query":"mutation { deleteCircuitType(input: {id:\"<circuit-type-id>\"}) { circuitType { name slug } } }"}' http://localhost:8000/graphql
+
+    {"data":{"deleteCircuitType":{"circuitType":{"name":"TypeX","slug":"typeX"}}}}
 
 Graphql editor for writing queries
 ----------------------------------
