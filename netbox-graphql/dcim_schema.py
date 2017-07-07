@@ -15,7 +15,7 @@ def MACAddressFieldConvert(field, registry=None):
 
 @convert_django_field.register(ASNField)
 def ASNFieldConvert(field, registry=None):
-    return graphene.String()
+    return graphene.Numeric()
 
 # Nodes
 class DeviceNode(DjangoObjectType):
