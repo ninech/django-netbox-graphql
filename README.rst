@@ -104,6 +104,10 @@ Graphql editor for writing queries
 
 .. image:: https://s11.postimg.org/5vi9lmn1f/django-netbox-graphql.png
 
+Examples for module Circuit
+---------------------------
+
+All examples are available `here <EXAMPLES.md>`_
 
 PYPI Distribution
 -----------------
