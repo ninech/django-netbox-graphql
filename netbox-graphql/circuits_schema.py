@@ -3,7 +3,8 @@ from graphene import Node
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
 
-from circuits.models import CircuitType, Circuit, Provider
+from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
+from dcim.models import Site, Interface
 from tenancy.models import Tenant
 from filter_fields import date_types, string_types, number_types
 from helper_methods import not_none
@@ -55,15 +56,26 @@ class CircuitTypeNode(DjangoObjectType):
         }
         # filter_order_by = ('slug')
 
+class CircuitTerminationNode(DjangoObjectType):
+    class Meta:
+        model = CircuitTermination
+        interfaces = (Node, )
+        filter_fields = {
+            'id': ['exact'],
+            'term_side': string_types,
+        }
+        # filter_order_by = ('id')
+
+
 # Queries
 class CircuitsQuery(AbstractType):
     providers = DjangoFilterConnectionField(ProviderNode)
     circuit_types = DjangoFilterConnectionField(CircuitTypeNode)
     circuit = Node.Field(CircuitNode)
     circuits = DjangoFilterConnectionField(CircuitNode)
+    circuit_terminations = DjangoFilterConnectionField(CircuitTerminationNode)
 
 # Mutations
-
 class NewCircuitType(ClientIDMutation):
     circuit_type = Field(CircuitTypeNode)
     class Input:
@@ -326,3 +338,110 @@ class CircuitMutation(AbstractType):
     new_circuit = NewCircuit.Field()
     update_circuit = UpdateCircuit.Field()
     delete_circuit = DeleteCircuit.Field()
+
+class NewCircuitTermination(ClientIDMutation):
+    circuit_termination = Field(CircuitTerminationNode)
+    class Input:
+        circuit = String(default_value=None)
+        term_side = String(default_value=None)
+        site = String(default_value=None)
+        interface = String(default_value=None)
+        port_speed = Int(default_value=None)
+        upstream_speed = Int(default_value=None)
+        xconnect_id = String(default_value=None)
+        pp_info = String(default_value=None)
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        circuit = input.get('circuit')
+        term_side = input.get('term_side')
+        site = input.get('site')
+        interface = input.get('interface')
+        port_speed = input.get('port_speed')
+        upstream_speed = input.get('upstream_speed')
+        xconnect_id = input.get('xconnect_id')
+        pp_info = input.get('pp_info')
+
+        temp = CircuitTermination()
+
+        if not_none(circuit):
+            temp.circuit = Circuit.objects.get(pk=from_global_id(circuit)[1])
+        if not_none(term_side):
+            temp.term_side = term_side
+        if not_none(site):
+            temp.site = Site.objects.get(pk=from_global_id(site)[1])
+        if not_none(interface):
+            temp.interface = Interface.objects.get(pk=from_global_id(interface)[1])
+        if not_none(port_speed):
+            temp.port_speed = port_speed
+        if not_none(upstream_speed):
+            temp.upstream_speed = upstream_speed
+        if not_none(xconnect_id):
+            temp.xconnect_id = xconnect_id
+        if not_none(pp_info):
+            temp.pp_info = pp_info
+        temp.full_clean()
+        temp.save()
+        return NewCircuitTermination(circuit_termination=temp)
+
+class UpdateCircuitTermination(ClientIDMutation):
+    circuit_termination = Field(CircuitTerminationNode)
+    class Input:
+        id = String(default_value=None)
+        circuit = String(default_value=None)
+        term_side = String(default_value=None)
+        site = String(default_value=None)
+        interface = String(default_value=None)
+        port_speed = Int(default_value=None)
+        upstream_speed = Int(default_value=None)
+        xconnect_id = String(default_value=None)
+        pp_info = String(default_value=None)
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        circuit = input.get('circuit')
+        term_side = input.get('term_side')
+        site = input.get('site')
+        interface = input.get('interface')
+        port_speed = input.get('port_speed')
+        upstream_speed = input.get('upstream_speed')
+        xconnect_id = input.get('xconnect_id')
+        pp_info = input.get('pp_info')
+
+        temp = CircuitTermination.objects.get(pk=from_global_id(input.get('id'))[1])
+
+        if not_none(circuit):
+            temp.circuit = Circuit.objects.get(pk=from_global_id(circuit)[1])
+        if not_none(term_side):
+            temp.term_side = term_side
+        if not_none(site):
+            temp.site = Site.objects.get(pk=from_global_id(site)[1])
+        if not_none(interface):
+            temp.interface = Interface.objects.get(pk=from_global_id(interface)[1])
+        if not_none(port_speed):
+            temp.port_speed = port_speed
+        if not_none(upstream_speed):
+            temp.upstream_speed = upstream_speed
+        if not_none(xconnect_id):
+            temp.xconnect_id = xconnect_id
+        if not_none(pp_info):
+            temp.pp_info = pp_info
+        temp.full_clean()
+        temp.save()
+        return UpdateCircuitTermination(circuit_termination=temp)
+
+class DeleteCircuitTermination(ClientIDMutation):
+    circuit_termination = Field(CircuitTerminationNode)
+    class Input:
+        id = String()
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        circuit_termination = CircuitTermination.objects.get(pk=from_global_id(input.get('id'))[1])
+        circuit_termination.delete()
+        return DeleteCircuitTermination(circuit_termination=circuit_termination)
+
+class CircuitTerminationMutation(AbstractType):
+    new_circuit_termination = NewCircuitTermination.Field()
+    update_circuit_termination = UpdateCircuitTermination.Field()
+    delete_circuit_termination = DeleteCircuitTermination.Field()

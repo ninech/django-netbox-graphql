@@ -1,5 +1,5 @@
 import graphene
-from .circuits_schema import CircuitsQuery, CircuitTypeMutation, ProviderMutation, CircuitMutation
+from .circuits_schema import CircuitsQuery, CircuitTypeMutation, ProviderMutation, CircuitMutation, CircuitTerminationMutation
 from .tenancy_schema import TenancyQuery
 from .dcim_schema import DcimQuery
 from .ipam_schema import IpamQuery
@@ -18,6 +18,7 @@ class RootMutation(
       CircuitTypeMutation
     , ProviderMutation
     , CircuitMutation
+    , CircuitTerminationMutation
     , graphene.ObjectType):
     pass
 
