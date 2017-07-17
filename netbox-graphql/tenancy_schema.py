@@ -2,7 +2,7 @@ from graphene import AbstractType
 from graphene import Node
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
-from filter_fields import date_types, string_types, number_types
+from .custom_filter_fields import date_types, string_types, number_types
 from tenancy.models import Tenant, TenantGroup
 
 # Nodes

@@ -6,8 +6,8 @@ from graphene_django.types import DjangoObjectType
 from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
 from dcim.models import Site, Interface
 from tenancy.models import Tenant
-from filter_fields import date_types, string_types, number_types
-from helper_methods import not_none
+from .custom_filter_fields import date_types, string_types, number_types
+from .helper_methods import not_none
 
 from graphene import AbstractType
 from graphene import Field

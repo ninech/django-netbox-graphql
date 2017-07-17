@@ -7,7 +7,7 @@ from graphene_django.types import DjangoObjectType
 
 from ipam.models import IPAddress
 from ipam.fields import IPNetworkField, IPAddressField
-from filter_fields import date_types, string_types, number_types
+from .custom_filter_fields import date_types, string_types, number_types
 
 
 @convert_django_field.register(IPNetworkField)

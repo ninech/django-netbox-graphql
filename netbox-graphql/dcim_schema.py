@@ -6,7 +6,7 @@ from graphene_django.types import DjangoObjectType
 from dcim.models import Device, Interface, Site
 from graphene_django.converter import convert_django_field
 from dcim.fields import ASNField, MACAddressField
-from filter_fields import date_types, string_types, number_types
+from .custom_filter_fields import date_types, string_types, number_types
 
 # Convert special field
 @convert_django_field.register(MACAddressField)
