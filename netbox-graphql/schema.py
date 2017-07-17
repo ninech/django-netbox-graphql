@@ -23,3 +23,4 @@ class RootMutation(
     pass
 
 schema = graphene.Schema(query=RootQuery, mutation=RootMutation)
+
