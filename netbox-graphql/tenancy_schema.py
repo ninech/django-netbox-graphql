@@ -32,4 +32,3 @@ class TenantNode(DjangoObjectType):
 class TenancyQuery(AbstractType):
     tenant_groups = DjangoFilterConnectionField(TenantGroupNode)
     tenants = DjangoFilterConnectionField(TenantGroupNode)
-
