@@ -23,7 +23,6 @@ class IPAddressNode(DjangoObjectType):
     class Meta:
         model = IPAddress
         interfaces = (Node, )
-        # only_fields = ('interface', 'description', 'status', 'id')
 
 # Queries
 class IpamQuery(AbstractType):

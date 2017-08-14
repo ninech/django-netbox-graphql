@@ -7,7 +7,7 @@ from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
 from dcim.models import Site, Interface
 from tenancy.models import Tenant
 from .custom_filter_fields import date_types, string_types, number_types
-from .helper_methods import not_none
+from .helper_methods import not_none, set_and_save
 
 from graphene import AbstractType
 from graphene import Field
@@ -15,6 +15,7 @@ from graphene import Node
 from graphene import ClientIDMutation
 from graphql_relay.node.node import from_global_id
 from graphene import ID, Boolean, Float, Int, List, String
+import sys
 
 # Nodes
 class ProviderNode(DjangoObjectType):
@@ -24,11 +25,11 @@ class ProviderNode(DjangoObjectType):
         model = Provider
         interfaces = (Node, )
         filter_fields = {
+            'id': ['exact'],
             'name': string_types,
             'slug': ['exact'],
             'asn' : number_types,
         }
-        # filter_order_by = ('id')
 
 class CircuitNode(DjangoObjectType):
     custom_field_values = String()
@@ -43,7 +44,6 @@ class CircuitNode(DjangoObjectType):
             'description': string_types,
             'comments': string_types,
         }
-        # filter_order_by = ('id', 'cid')
 
 class CircuitTypeNode(DjangoObjectType):
     class Meta:
@@ -54,7 +54,6 @@ class CircuitTypeNode(DjangoObjectType):
             'name': string_types,
             'slug': string_types,
         }
-        # filter_order_by = ('slug')
 
 class CircuitTerminationNode(DjangoObjectType):
     class Meta:
@@ -64,8 +63,6 @@ class CircuitTerminationNode(DjangoObjectType):
             'id': ['exact'],
             'term_side': string_types,
         }
-        # filter_order_by = ('id')
-
 
 # Queries
 class CircuitsQuery(AbstractType):
@@ -84,12 +81,8 @@ class NewCircuitType(ClientIDMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, input, context, info):
-        temp = CircuitType()
-        temp.name = input.get('name')
-        temp.slug = input.get('slug')
-        temp.full_clean()
-        temp.save()
-        return NewCircuitType(circuit_type=temp)
+        fields = [ 'name', 'slug' ]
+        return NewCircuitType(circuit_type=set_and_save(fields, input, CircuitType()))
 
 class UpdateCircuitType(ClientIDMutation):
     circuit_type = Field(CircuitTypeNode)
@@ -101,17 +94,8 @@ class UpdateCircuitType(ClientIDMutation):
     @classmethod
     def mutate_and_get_payload(cls, input, context, info):
         temp = CircuitType.objects.get(pk=from_global_id(input.get('id'))[1])
-
-        name = input.get('name')
-        slug = input.get('slug')
-
-        if not_none(name):
-            temp.name = name
-        if not_none(slug):
-            temp.slug = slug
-        temp.full_clean()
-        temp.save()
-        return UpdateCircuitType(circuit_type=temp)
+        fields = [ 'name', 'slug' ]
+        return UpdateCircuitType(circuit_type=set_and_save(fields, input, temp))
 
 class DeleteCircuitType(ClientIDMutation):
     circuit_type = Field(CircuitTypeNode)
@@ -120,9 +104,9 @@ class DeleteCircuitType(ClientIDMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, input, context, info):
-        circuit_type = CircuitType.objects.get(pk=from_global_id(input.get('id'))[1])
-        circuit_type.delete()
-        return DeleteCircuitType(circuit_type=circuit_type)
+        temp = CircuitType.objects.get(pk=from_global_id(input.get('id'))[1])
+        temp.delete()
+        return DeleteCircuitType(circuit_type=temp)
 
 class CircuitTypeMutation(AbstractType):
     new_circuit_type = NewCircuitType.Field()
@@ -144,19 +128,9 @@ class NewProvider(ClientIDMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, input, context, info):
-        temp = Provider()
-        temp.name = input.get('name')
-        temp.slug = input.get('slug')
-        temp.asn = input.get('asn')
-        temp.account = input.get('account')
-        temp.portal_url = input.get('portal_url')
-        temp.noc_contact = input.get('noc_contact')
-        temp.admin_contact = input.get('admin_contact')
-        temp.comments = input.get('comments')
-        temp.custom_field_values = input.get('custom_field_values')
-        temp.full_clean()
-        temp.save()
-        return NewProvider(provider=temp)
+        fields = [ 'name', 'slug', 'asn', 'account', 'portal_url', 'noc_contact',
+                   'admin_contact', 'comments', 'custom_field_values' ]
+        return NewProvider(provider=set_and_save(fields, input, Provider()))
 
 class UpdateProvider(ClientIDMutation):
     provider = Field(ProviderNode)
@@ -175,38 +149,9 @@ class UpdateProvider(ClientIDMutation):
     @classmethod
     def mutate_and_get_payload(cls, input, context, info):
         temp = Provider.objects.get(pk=from_global_id(input.get('id'))[1])
-
-        name = input.get('name')
-        slug = input.get('slug')
-        asn = input.get('asn')
-        account = input.get('account')
-        portal_url = input.get('portal_url')
-        noc_contact = input.get('noc_contact')
-        admin_contact = input.get('admin_contact')
-        comments = input.get('comments')
-        custom_field_values = input.get('custom_field_values')
-
-        if not_none(name):
-            temp.name = name
-        if not_none(slug):
-            temp.slug = slug
-        if not_none(asn):
-            temp.asn = asn
-        if not_none(account):
-            temp.account = account
-        if not_none(portal_url):
-            temp.portal_url = portal_url
-        if not_none(noc_contact):
-            temp.noc_contact = noc_contact
-        if not_none(admin_contact):
-            temp.admin_contact = admin_contact
-        if not_none(comments):
-            temp.comments = comments
-        if not_none(custom_field_values):
-            temp.custom_field_values = custom_field_values
-        temp.full_clean()
-        temp.save()
-        return UpdateProvider(provider=temp)
+        fields = [ 'name', 'slug', 'asn', 'account', 'portal_url', 'noc_contact',
+                   'admin_contact', 'comments', 'custom_field_values' ]
+        return UpdateProvider(provider=set_and_save(fields, input, temp))
 
 class DeleteProvider(ClientIDMutation):
     provider = Field(ProviderNode)
@@ -215,9 +160,9 @@ class DeleteProvider(ClientIDMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, input, context, info):
-        provider = Provider.objects.get(pk=from_global_id(input.get('id'))[1])
-        provider.delete()
-        return DeleteProvider(provider=provider)
+        temp = Provider.objects.get(pk=from_global_id(input.get('id'))[1])
+        temp.delete()
+        return DeleteProvider(provider=temp)
 
 class ProviderMutation(AbstractType):
     new_provider = NewProvider.Field()
@@ -239,39 +184,21 @@ class NewCircuit(ClientIDMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, input, context, info):
-        cid = input.get('cid')
         provider = input.get('provider')
         type = input.get('type')
         tenant = input.get('tenant')
-        install_date = input.get('install_date')
-        commit_rate = input.get('commit_rate')
-        description = input.get('description')
-        comments = input.get('comments')
-        custom_field_values =input.get('custom_field_values')
 
         temp = Circuit()
 
-        if not_none(cid):
-            temp.cid = cid
         if not_none(provider):
-            temp.provider = Provider.objects.get(pk=from_global_id(input.get('provider'))[1])
+            temp.provider = Provider.objects.get(pk=from_global_id(provider)[1])
         if not_none(type):
-            temp.type = CircuitType.objects.get(pk=from_global_id(input.get('type'))[1])
+            temp.type = CircuitType.objects.get(pk=from_global_id(type)[1])
         if not_none(tenant):
-            temp.tenant = Tenant.objects.get(pk=from_global_id(input.get('tenant'))[1])
-        if not_none(install_date):
-            temp.install_date = install_date
-        if not_none(commit_rate):
-            temp.commit_rate = commit_rate
-        if not_none(description):
-            temp.description = description
-        if not_none(comments):
-            temp.comments = comments
-        if not_none(custom_field_values):
-            temp.custom_field_values = custom_field_values
-        temp.full_clean()
-        temp.save()
-        return NewCircuit(circuit=temp)
+            temp.tenant = Tenant.objects.get(pk=from_global_id(tenant)[1])
+
+        fields = [ 'cid', 'install_date', 'commit_rate', 'description', 'comments', 'custom_field_values' ]
+        return NewCircuit(circuit=set_and_save(fields, input, temp))
 
 class UpdateCircuit(ClientIDMutation):
     circuit = Field(CircuitNode)
@@ -289,39 +216,21 @@ class UpdateCircuit(ClientIDMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, input, context, info):
-        cid = input.get('cid')
         provider = input.get('provider')
         type = input.get('type')
         tenant = input.get('tenant')
-        install_date = input.get('install_date')
-        commit_rate = input.get('commit_rate')
-        description = input.get('description')
-        comments = input.get('comments')
-        custom_field_values =input.get('custom_field_values')
 
         temp = Circuit.objects.get(pk=from_global_id(input.get('id'))[1])
 
-        if not_none(cid):
-            temp.cid = cid
         if not_none(provider):
-            temp.provider = Provider.objects.get(pk=from_global_id(input.get('provider'))[1])
+            temp.provider = Provider.objects.get(pk=from_global_id(provider)[1])
         if not_none(type):
-            temp.type = CircuitType.objects.get(pk=from_global_id(input.get('type'))[1])
+            temp.type = CircuitType.objects.get(pk=from_global_id(type)[1])
         if not_none(tenant):
-            temp.tenant = Tenant.objects.get(pk=from_global_id(input.get('tenant'))[1])
-        if not_none(install_date):
-            temp.install_date = install_date
-        if not_none(commit_rate):
-            temp.commit_rate = commit_rate
-        if not_none(description):
-            temp.description = description
-        if not_none(comments):
-            temp.comments = comments
-        if not_none(custom_field_values):
-            temp.custom_field_values = custom_field_values
-        temp.full_clean()
-        temp.save()
-        return UpdateCircuit(circuit=temp)
+            temp.tenant = Tenant.objects.get(pk=from_global_id(tenant)[1])
+
+        fields = [ 'cid', 'install_date', 'commit_rate', 'description', 'comments', 'custom_field_values' ]
+        return UpdateCircuit(circuit=set_and_save(fields, input, temp))
 
 class DeleteCircuit(ClientIDMutation):
     circuit = Field(CircuitNode)
@@ -330,9 +239,9 @@ class DeleteCircuit(ClientIDMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, input, context, info):
-        circuit = Circuit.objects.get(pk=from_global_id(input.get('id'))[1])
-        circuit.delete()
-        return DeleteCircuit(circuit=circuit)
+        temp = Circuit.objects.get(pk=from_global_id(input.get('id'))[1])
+        temp.delete()
+        return DeleteCircuit(circuit=temp)
 
 class CircuitMutation(AbstractType):
     new_circuit = NewCircuit.Field()
@@ -354,35 +263,20 @@ class NewCircuitTermination(ClientIDMutation):
     @classmethod
     def mutate_and_get_payload(cls, input, context, info):
         circuit = input.get('circuit')
-        term_side = input.get('term_side')
         site = input.get('site')
         interface = input.get('interface')
-        port_speed = input.get('port_speed')
-        upstream_speed = input.get('upstream_speed')
-        xconnect_id = input.get('xconnect_id')
-        pp_info = input.get('pp_info')
 
         temp = CircuitTermination()
 
         if not_none(circuit):
             temp.circuit = Circuit.objects.get(pk=from_global_id(circuit)[1])
-        if not_none(term_side):
-            temp.term_side = term_side
         if not_none(site):
             temp.site = Site.objects.get(pk=from_global_id(site)[1])
         if not_none(interface):
             temp.interface = Interface.objects.get(pk=from_global_id(interface)[1])
-        if not_none(port_speed):
-            temp.port_speed = port_speed
-        if not_none(upstream_speed):
-            temp.upstream_speed = upstream_speed
-        if not_none(xconnect_id):
-            temp.xconnect_id = xconnect_id
-        if not_none(pp_info):
-            temp.pp_info = pp_info
-        temp.full_clean()
-        temp.save()
-        return NewCircuitTermination(circuit_termination=temp)
+
+        fields = [ 'term_side', 'port_speed', 'upstream_speed', 'xconnect_id', 'pp_info' ]
+        return NewCircuitTermination(circuit_termination=set_and_save(fields, input, temp))
 
 class UpdateCircuitTermination(ClientIDMutation):
     circuit_termination = Field(CircuitTerminationNode)
@@ -400,35 +294,20 @@ class UpdateCircuitTermination(ClientIDMutation):
     @classmethod
     def mutate_and_get_payload(cls, input, context, info):
         circuit = input.get('circuit')
-        term_side = input.get('term_side')
         site = input.get('site')
         interface = input.get('interface')
-        port_speed = input.get('port_speed')
-        upstream_speed = input.get('upstream_speed')
-        xconnect_id = input.get('xconnect_id')
-        pp_info = input.get('pp_info')
 
         temp = CircuitTermination.objects.get(pk=from_global_id(input.get('id'))[1])
 
         if not_none(circuit):
             temp.circuit = Circuit.objects.get(pk=from_global_id(circuit)[1])
-        if not_none(term_side):
-            temp.term_side = term_side
         if not_none(site):
             temp.site = Site.objects.get(pk=from_global_id(site)[1])
         if not_none(interface):
             temp.interface = Interface.objects.get(pk=from_global_id(interface)[1])
-        if not_none(port_speed):
-            temp.port_speed = port_speed
-        if not_none(upstream_speed):
-            temp.upstream_speed = upstream_speed
-        if not_none(xconnect_id):
-            temp.xconnect_id = xconnect_id
-        if not_none(pp_info):
-            temp.pp_info = pp_info
-        temp.full_clean()
-        temp.save()
-        return UpdateCircuitTermination(circuit_termination=temp)
+
+        fields = [ 'term_side', 'port_speed', 'upstream_speed', 'xconnect_id', 'pp_info' ]
+        return UpdateCircuitTermination(circuit_termination=set_and_save(fields, input, temp))
 
 class DeleteCircuitTermination(ClientIDMutation):
     circuit_termination = Field(CircuitTerminationNode)
@@ -437,9 +316,9 @@ class DeleteCircuitTermination(ClientIDMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, input, context, info):
-        circuit_termination = CircuitTermination.objects.get(pk=from_global_id(input.get('id'))[1])
-        circuit_termination.delete()
-        return DeleteCircuitTermination(circuit_termination=circuit_termination)
+        temp = CircuitTermination.objects.get(pk=from_global_id(input.get('id'))[1])
+        temp.delete()
+        return DeleteCircuitTermination(circuit_termination=temp)
 
 class CircuitTerminationMutation(AbstractType):
     new_circuit_termination = NewCircuitTermination.Field()

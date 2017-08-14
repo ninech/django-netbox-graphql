@@ -109,10 +109,18 @@ Examples for module Circuit
 
 All examples are available `here <EXAMPLES.md>`_
 
+Packaging and deploying to pypi.python.org
+-----------------------------------------------
+The simplest way to make package and deploy it is with using `twine`::
+
+    pip install twine # install twine
+    python setup.py sdist # build django-netbox-graphql-X.X.X.tar.gz
+    twine upload dist/django-netbox-graphql-X.X.X.tar.gz
+
 PYPI Distribution
 -----------------
 
-Can be found at https://pypi.python.org/pypi?:action=display&name=django-netbox-graphql&version=0.0.2
+Can be found at https://pypi.python.org/pypi?:action=display&name=django-netbox-graphql
 
 About
 -----

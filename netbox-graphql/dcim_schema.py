@@ -27,7 +27,6 @@ class InterfaceNode(DjangoObjectType):
     class Meta:
         model = Interface
         interfaces = (Node, )
-        # only_fields = ('name', 'device', 'mgmt_only', 'id', 'mac_address')
 
 class SiteNode(DjangoObjectType):
     class Meta:
