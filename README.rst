@@ -3,6 +3,16 @@ django-netbox-graphql
 =====
 
 Netbox-Graphql is a simple Django app which provides a GraphQL API for Netbox.
+This module is dockerized and **development of it is still in progress**. Netbox's circuit module with all it's models are covered.
+For this part of app you can CRUD operations.
+
+Available Models for CRUD
+------------------------
+* CIRCUITS
+    * Provider
+    * Circuit
+    * CircuitType
+    * CircuitTermination
 
 Build package (optional)
 ------------------------
