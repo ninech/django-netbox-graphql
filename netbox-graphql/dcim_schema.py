@@ -1,12 +1,11 @@
 import graphene
-from graphene import AbstractType
-from graphene import Node
+from graphene import AbstractType, Node
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
-from dcim.models import Device, Interface, Site
 from graphene_django.converter import convert_django_field
+
+from dcim.models import Device, Interface, Site
 from dcim.fields import ASNField, MACAddressField
-from .custom_filter_fields import date_types, string_types, number_types
 
 # Convert special field
 @convert_django_field.register(MACAddressField)

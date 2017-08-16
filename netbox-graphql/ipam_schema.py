@@ -1,14 +1,11 @@
 import graphene
+from graphene import AbstractType, Node
 from graphene_django.converter import convert_django_field
-from graphene import AbstractType
-from graphene import Node
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
 
 from ipam.models import IPAddress
 from ipam.fields import IPNetworkField, IPAddressField
-from .custom_filter_fields import date_types, string_types, number_types
-
 
 @convert_django_field.register(IPNetworkField)
 def iPNetworkFieldConvert(field, registry=None):

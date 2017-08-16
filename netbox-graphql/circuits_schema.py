@@ -1,21 +1,14 @@
-from graphene import AbstractType
-from graphene import Node
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
+from graphene import AbstractType, Field, Node, ClientIDMutation, AbstractType
+from graphql_relay.node.node import from_global_id
+from graphene import ID, Boolean, Float, Int, List, String
 
 from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
 from dcim.models import Site, Interface
 from tenancy.models import Tenant
 from .custom_filter_fields import date_types, string_types, number_types
 from .helper_methods import not_none, set_and_save
-
-from graphene import AbstractType
-from graphene import Field
-from graphene import Node
-from graphene import ClientIDMutation
-from graphql_relay.node.node import from_global_id
-from graphene import ID, Boolean, Float, Int, List, String
-import sys
 
 # Nodes
 class ProviderNode(DjangoObjectType):
