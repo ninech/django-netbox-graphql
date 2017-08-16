@@ -1,12 +1,11 @@
 import graphene
-from graphene import AbstractType
-from graphene import Node
+from graphene import AbstractType, Node
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
-from dcim.models import Device, Interface
 from graphene_django.converter import convert_django_field
+
+from dcim.models import Device, Interface, Site
 from dcim.fields import ASNField, MACAddressField
-from filter_fields import date_types, string_types, number_types
 
 # Convert special field
 @convert_django_field.register(MACAddressField)
@@ -15,7 +14,7 @@ def MACAddressFieldConvert(field, registry=None):
 
 @convert_django_field.register(ASNField)
 def ASNFieldConvert(field, registry=None):
-    return graphene.String()
+    return graphene.Float()
 
 # Nodes
 class DeviceNode(DjangoObjectType):
@@ -27,9 +26,14 @@ class InterfaceNode(DjangoObjectType):
     class Meta:
         model = Interface
         interfaces = (Node, )
-        # only_fields = ('name', 'device', 'mgmt_only', 'id', 'mac_address')
+
+class SiteNode(DjangoObjectType):
+    class Meta:
+        model = Site
+        interfaces = (Node, )
 
 # Queries
 class DcimQuery(AbstractType):
     devices = DjangoFilterConnectionField(DeviceNode)
     interfaces = DjangoFilterConnectionField(InterfaceNode)
+    sites = DjangoFilterConnectionField(SiteNode)
