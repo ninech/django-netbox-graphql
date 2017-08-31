@@ -100,3 +100,6 @@ ENV/
 # mypy
 .mypy_cache/
 *.pyc
+
+# snaptests output
+netbox-graphql/testing/*
