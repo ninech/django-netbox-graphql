@@ -61,3 +61,29 @@ def initialize_circuit(id):
     )
     circuit.save()
     return circuit
+
+def initialize_site(id):
+    site = Site(
+        id = id,
+        name = 'Site Name ' + id,
+        slug = 'site-name ' + id
+    )
+    site.save()
+    return site
+
+def initialize_circuit_termination(id):
+    circuit = initialize_circuit(id)
+    site = initialize_site(id)
+
+    circuit_termination = CircuitTermination(
+        id = id,
+        circuit = circuit,
+        term_side = 'A',
+        site = site,
+        port_speed = 256,
+        upstream_speed = 512,
+        xconnect_id = 'xconnect_id',
+        pp_info = 'pp_info'
+    )
+    circuit_termination.save()
+    return circuit_termination
