@@ -113,7 +113,6 @@ class CircuitTypeTestCase(TestCase):
         mutation {
           newCircuitType(input: {name: "Type", slug: "type"}) {
             circuitType {
-              id
               name
               slug
             }
@@ -121,7 +120,7 @@ class CircuitTypeTestCase(TestCase):
         }
         '''
         expected = { 'newCircuitType':
-                         {'circuitType': {'id': 'Q2lyY3VpdFR5cGVOb2RlOjE=', 'name': 'Type', 'slug': 'type'}}}
+                         {'circuitType': {'name': 'Type', 'slug': 'type'}}}
 
         result = schema.execute(query)
         assert not result.errors
@@ -196,7 +195,6 @@ class ProviderTestCase(TestCase):
           newProvider(input: {name: "Provider123", slug: "provider123", asn: 256, account: "account",
           portalUrl: "http://github.com/", nocContact:"noc", comments: "my comment"}) {
             provider {
-              id
               slug
               name
               asn
@@ -209,7 +207,7 @@ class ProviderTestCase(TestCase):
         }
         '''
         expected = {'newProvider':
-                        {'provider': {'id': 'UHJvdmlkZXJOb2RlOjE=', 'slug': 'provider123', 'name': 'Provider123',
+                        {'provider': { 'slug': 'provider123', 'name': 'Provider123',
                                       'asn': 256.0, 'account': 'account', 'portalUrl': 'http://github.com/',
                                       'nocContact': 'noc', 'comments': 'my comment'}}}
         result = schema.execute(query)
@@ -327,7 +325,6 @@ class CircuitTestCase(TestCase):
           newCircuit(input: {cid: "cid112", provider:"UHJvdmlkZXJOb2RlOjEyNA==", type:"Q2lyY3VpdFR5cGVOb2RlOjEyMw==",
           installDate:"2017-10-12", commitRate: 12, description:"desc", comments:"dsadsa" }) {
             circuit {
-              id
               cid
               provider {
                 id
@@ -345,7 +342,7 @@ class CircuitTestCase(TestCase):
           }
         }
         '''
-        expected = {'newCircuit': {'circuit': {'id': 'Q2lyY3VpdE5vZGU6MQ==', 'cid': 'cid112',
+        expected = {'newCircuit': {'circuit': {'cid': 'cid112',
                                                'provider': {'id': 'UHJvdmlkZXJOb2RlOjEyNA==', 'name': 'Provider 124'},
                                                'type': {'id': 'Q2lyY3VpdFR5cGVOb2RlOjEyMw==', 'name': 'Type 123'},
                                                'installDate': '2017-10-12', 'commitRate': 12, 'description': 'desc',
@@ -450,7 +447,7 @@ class CircuitTestCase(TestCase):
         assert result.data == expected
 
 class CircuitTerminationTestCase(TestCase):
-    def test_creating_new_circuit(self):
+    def test_creating_new_circuit_termination(self):
         initialize_site('434')
         initialize_circuit('434')
 
@@ -458,7 +455,6 @@ class CircuitTerminationTestCase(TestCase):
         mutation {
           newCircuitTermination(input: {circuit: "Q2lyY3VpdE5vZGU6NDM0", portSpeed:128, termSide:"A", upstreamSpeed:128, site:"U2l0ZU5vZGU6NDM0", ppInfo:"ppInfo",xconnectId:"xconnectId" }) {
             circuitTermination {
-              id
               termSide
               portSpeed
               ppInfo
@@ -477,7 +473,7 @@ class CircuitTerminationTestCase(TestCase):
         }
         '''
         expected = {'newCircuitTermination': {
-            'circuitTermination': {'id': 'Q2lyY3VpdFRlcm1pbmF0aW9uTm9kZTox', 'termSide': 'A', 'portSpeed': 128,
+            'circuitTermination': {'termSide': 'A', 'portSpeed': 128,
                                    'ppInfo': 'ppInfo', 'upstreamSpeed': 128, 'xconnectId': 'xconnectId',
                                    'site': {'id': 'U2l0ZU5vZGU6NDM0', 'name': 'Site Name 434'},
                                    'circuit': {'id': 'Q2lyY3VpdE5vZGU6NDM0', 'cid': 'cid'}}}}
@@ -493,7 +489,6 @@ class CircuitTerminationTestCase(TestCase):
           circuitTerminations(id:"Q2lyY3VpdFRlcm1pbmF0aW9uTm9kZTo3ODk=") {
             edges {
               node {
-                id
                 termSide
                 portSpeed
                 ppInfo
@@ -512,7 +507,7 @@ class CircuitTerminationTestCase(TestCase):
           }
         }
         '''
-        expected = {'circuitTerminations': {'edges': [{'node': {'id': 'Q2lyY3VpdFRlcm1pbmF0aW9uTm9kZTo3ODk=', 'termSide': 'A', 'portSpeed': 256, 'ppInfo': 'pp_info', 'upstreamSpeed': 512, 'xconnectId': 'xconnect_id', 'site': {'id': 'U2l0ZU5vZGU6Nzg5', 'name': 'Site Name 789'}, 'circuit': {'id': 'Q2lyY3VpdE5vZGU6Nzg5', 'cid': 'cid'}}}]}}
+        expected = {'circuitTerminations': {'edges': [{'node': {'termSide': 'A', 'portSpeed': 256, 'ppInfo': 'pp_info', 'upstreamSpeed': 512, 'xconnectId': 'xconnect_id', 'site': {'id': 'U2l0ZU5vZGU6Nzg5', 'name': 'Site Name 789'}, 'circuit': {'id': 'Q2lyY3VpdE5vZGU6Nzg5', 'cid': 'cid'}}}]}}
 
         result = schema.execute(query)
         assert not result.errors
