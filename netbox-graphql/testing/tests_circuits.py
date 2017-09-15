@@ -1,8 +1,7 @@
 import pytest
-import json
 from graphene.test import Client
 from snapshottest import TestCase
-from ..data import initialize_circuit_type, initialize_circuit, initialize_provider, initialize_circuit_termination, initialize_site
+from .data import initialize_circuit_type, initialize_circuit, initialize_provider, initialize_circuit_termination, initialize_site
 from ..schema import schema
 from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
 
