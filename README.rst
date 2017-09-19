@@ -132,13 +132,15 @@ Tests
 -----
 Run unit tests::
 
-    docker-compose up -d
-    docker-compose exec netbox python /opt/netbox/netbox/manage.py test # runs all tests
-    docker-compose exec netbox python /opt/netbox/netbox/manage.py test netbox-graphql/ # runs only netbox-graphql module tests
+    docker-compose up -d postgres
+    
+    # wait until the database started.
 
-After every testing you should delete folder `snapshots` in netbox-graphql folder::
-    docker-compose exec netbox rm -r /opt/netbox/netbox/netbox-graphql/testing/snapshots
+    docker-compose run --rm --entrypoint './manage.py' test # runs all tests
+    docker-compose run --rm --entrypoint './manage.py' test netbox-graphql/ # runs only netbox-graphql module tests
 
+    # At the end, you can stop any running service and cleanup as follows:
+    docker-compose down
 
 PYPI Distribution
 -----------------
