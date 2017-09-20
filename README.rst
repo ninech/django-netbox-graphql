@@ -127,6 +127,21 @@ The simplest way to make package and deploy it is with using `twine`::
     python setup.py sdist # build django-netbox-graphql-X.X.X.tar.gz
     twine upload dist/django-netbox-graphql-X.X.X.tar.gz
 
+
+Tests
+-----
+Run unit tests::
+
+    docker-compose up -d postgres
+    
+    # wait until the database started.
+
+    docker-compose run --rm --entrypoint './manage.py' netbox test # runs all tests
+    docker-compose run --rm --entrypoint './manage.py' netbox test netbox-graphql/ # runs only netbox-graphql module tests
+
+    # At the end, you can stop any running service and cleanup as follows:
+    docker-compose down
+
 PYPI Distribution
 -----------------
 
