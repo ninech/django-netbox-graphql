@@ -136,8 +136,8 @@ Run unit tests::
     
     # wait until the database started.
 
-    docker-compose run --rm --entrypoint './manage.py' test # runs all tests
-    docker-compose run --rm --entrypoint './manage.py' test netbox-graphql/ # runs only netbox-graphql module tests
+    docker-compose run --rm --entrypoint './manage.py' netbox test # runs all tests
+    docker-compose run --rm --entrypoint './manage.py' netbox test netbox-graphql/ # runs only netbox-graphql module tests
 
     # At the end, you can stop any running service and cleanup as follows:
     docker-compose down
