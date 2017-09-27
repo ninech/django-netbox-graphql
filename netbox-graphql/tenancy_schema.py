@@ -73,7 +73,8 @@ class DeleteTenantGroup(ClientIDMutation):
         temp.delete()
         return DeleteTenantGroup(tenant_group=temp)
 
-class TenantGroupMutation(AbstractType):
+class TenancyMutations(AbstractType):
+    # Tenant Group
     new_tenant_group = NewTenantGroup.Field()
     update_tenant_group = UpdateTenantGroup.Field()
     delete_tenant_group = DeleteTenantGroup.Field()
