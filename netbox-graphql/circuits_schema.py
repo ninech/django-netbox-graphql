@@ -107,12 +107,12 @@ class NewProvider(ClientIDMutation):
         name = String()
         slug = String()
         asn = Float()
-        account = String(default_value="")
-        portal_url = String(default_value="")
-        noc_contact = String(default_value="")
-        admin_contact = String(default_value="")
-        comments = String(default_value="")
-        custom_field_values = String(default_value="")
+        account = String(default_value=None)
+        portal_url = String(default_value=None)
+        noc_contact = String(default_value=None)
+        admin_contact = String(default_value=None)
+        comments = String(default_value=None)
+        custom_field_values = String(default_value=None)
 
     @classmethod
     def mutate_and_get_payload(cls, input, context, info):
