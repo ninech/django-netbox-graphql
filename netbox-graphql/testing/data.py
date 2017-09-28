@@ -92,10 +92,23 @@ def initialize_circuit_termination(id):
 # tenancy
 
 def initialize_tenant_group(id):
-    tenancy_group = TenantGroup(
+    tenant_group = TenantGroup(
         id = id,
         name = 'Tenant Group' + id,
         slug = 'tenant-group-' + id
     )
-    tenancy_group.save()
-    return  tenancy_group
+    tenant_group.save()
+    return  tenant_group
+
+def initialize_tenant(id):
+    tenant_goup = initialize_tenant_group(id)
+    tenant = Tenant(
+        id = id,
+        name = 'Tenant ' + id,
+        slug = 'tenant-' + id,
+        group = tenant_goup,
+        description = 'desc',
+        comments = 'comment'
+    )
+    tenant.save()
+    return tenant
