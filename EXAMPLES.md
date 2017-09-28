@@ -1,3 +1,5 @@
+## Circuits
+
 ### CircuitType
 
 Get all
@@ -356,3 +358,136 @@ mutation {
 }
 ```
 
+# Tenancies
+
+### TenantGroup
+
+Get all
+```
+{
+  tenantGroups {
+    edges {
+      node {
+        id
+        name
+        slug
+      }
+    }
+  }
+}
+```
+
+Create 
+```
+mutation{
+  newTenantGroup(input: {name: "TenantGroupA", slug: "tenant-group-A"}) {
+    tenantGroup{
+      id
+      name
+      slug
+    }
+  }
+}
+```
+
+Update
+```
+mutation{
+  updateTenantGroup(input: {id: "VGVuYW50R3JvdXBOb2RlOjQ=", name: "TenantGroup1", slug: "tenant-group-1"}) {
+    tenantGroup{
+      id
+      name
+      slug
+    }
+  }
+}
+```
+
+Delete
+```
+mutation{
+  deleteTenantGroup(input: {id: "VGVuYW50R3JvdXBOb2RlOjM="}) {
+    tenantGroup{
+      id
+      name
+      slug
+    }
+  }
+}
+```
+
+### Tenant
+
+Get all
+```
+{
+  tenants {
+    edges {
+      node {
+        id
+        name
+        slug
+        group {
+          id
+        }
+        description
+        comments
+      }
+    }
+  }
+}
+```
+
+Create 
+```
+mutation {
+  newTenant(input: {name: "Tenant 1", slug: "tenant-1", group: "VGVuYW50R3JvdXBOb2RlOjE=", description: "desc", comments: "comments"}) {
+    tenant {
+      id
+      name
+      slug
+            group {
+        	id
+      	} 
+      description
+      comments
+    }
+  }
+}
+```
+
+Update
+```
+mutation {
+  updateTenant(input: {id: "VGVuYW50Tm9kZTox", name: "Tenant A", slug: "tenant-A", group: "VGVuYW50R3JvdXBOb2RlOjE=", description: "descA", comments: "commentsA"}) {
+    tenant {
+      id
+      name
+      slug
+      group {
+        id
+      } 
+      description
+      comments
+    }
+  }
+}
+```
+
+Delete
+```
+mutation {
+  deleteTenant(input: {id: "VGVuYW50Tm9kZTox"}) {
+    tenant {
+      id
+      name
+      slug
+      group {
+        id
+      } 
+      description
+      comments
+    }
+  }
+}
+```

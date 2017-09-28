@@ -1,6 +1,8 @@
 from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
 from dcim.models import Site, Interface
+from tenancy.models import Tenant, TenantGroup
 
+# circuits
 def initialize_circuit_type():
     circuit_type = CircuitType(
         id = '111',
@@ -86,3 +88,14 @@ def initialize_circuit_termination(id):
     )
     circuit_termination.save()
     return circuit_termination
+
+# tenancy
+
+def initialize_tenant_group(id):
+    tenancy_group = TenantGroup(
+        id = id,
+        name = 'Tenant Group' + id,
+        slug = 'tenant-group-' + id
+    )
+    tenancy_group.save()
+    return  tenancy_group
