@@ -1,5 +1,5 @@
 from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
-from dcim.models import Site, Interface
+from dcim.models import Site, Interface, Region
 from tenancy.models import Tenant, TenantGroup
 
 # circuits
@@ -112,3 +112,36 @@ def initialize_tenant(id):
     )
     tenant.save()
     return tenant
+
+# dcim
+
+def initialize_region(id):
+    region = Region(
+        id = id,
+        name = 'Region' + id,
+        slug = 'region-' + id
+    )
+    region.save()
+    return region
+
+def initialize_(id):
+    region = initialize_region(id)
+    tenant = initialize_tenant(id)
+
+    site = Site(
+        id = id,
+        name = 'Name' + id,
+        slug = 'slug-' + id,
+        region = region,
+        tenant = tenant,
+        facility = 'fac',
+        asn = 12,
+        physical_address = 'A1',
+        shipping_address = 'A2',
+        contact_name = 'Name',
+        contact_phone = '123',
+        contact_email = 'a@gmail.com',
+        comments = 'comment'
+    )
+    region.save()
+    return region
