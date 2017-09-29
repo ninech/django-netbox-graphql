@@ -491,3 +491,186 @@ mutation {
   }
 }
 ```
+
+# DCIM
+
+### Region
+
+Get all
+```
+{
+  regions {
+    edges {
+      node {
+        id
+        name
+        slug
+        parent {
+          name          
+        }
+      }
+    }
+  }
+}
+```
+
+Create 
+```
+mutation{
+  newRegion(input: { parent:"UmVnaW9uTm9kZTo0", name: "Region 1", slug: "region-1"}) {
+    region{
+      id
+      name
+      slug
+      parent{
+        name
+      }
+    }
+  }
+}
+```
+
+Update
+```
+mutation{
+  updateRegion(input: { id:"UmVnaW9uTm9kZTo1", parent:"UmVnaW9uTm9kZTo0", name: "Region C", slug: "region-c"}) {
+    region{
+      id
+      name
+      slug
+      parent{
+        name
+      }
+    }
+  }
+}
+```
+
+Delete
+```
+mutation{
+  deleteRegion(input: { id:"UmVnaW9uTm9kZTo1"}) {
+    region{
+      id
+      name
+      slug
+      parent{
+        name
+      }
+    }
+  }
+}
+```
+
+### Site
+
+Get all
+```
+{
+  sites {
+    edges {
+      node {
+        id
+        name
+        slug
+        region {
+          name
+        }
+        tenant {
+          name
+        }
+        facility
+        asn
+        physicalAddress
+        shippingAddress
+        contactName
+        contactPhone
+        contactEmail
+        comments
+      }
+    }
+  }
+}
+```
+
+Create 
+```
+mutation{
+  newSite(input: { name:"Site 3", slug: "site3", region:"UmVnaW9uTm9kZTo0", tenant: "VGVuYW50Tm9kZToy", facility: "A", 
+    asn: 12, physicalAddress:"A1", shippingAddress: "A2", contactName: "Name", contactPhone: "123",  contactEmail:"a@gmail.com", comments: "comments"}) {
+    site {
+    id      
+    name
+    slug
+    region {
+      name
+    }
+    tenant {
+      name
+    }
+    facility
+    asn
+    physicalAddress
+    shippingAddress
+    contactName
+    contactPhone
+    contactEmail
+    comments
+    }
+  }
+}
+```
+
+Update
+```
+mutation{
+  updateSite(input: { id: "U2l0ZU5vZGU6Ng==" name:"Site 5", slug: "site6", region:"UmVnaW9uTm9kZTo0", tenant: "VGVuYW50Tm9kZToy", facility: "A", asn: 12, physicalAddress:"A1", shippingAddress: "A2", contactName: "Name", contactPhone: "456",  contactEmail:"a@gmail.com", comments: "comments"}) {
+    site {
+    id
+    name
+    slug
+    region {
+      name
+    }
+    tenant {
+      name
+    }
+    facility
+    asn
+    physicalAddress
+    shippingAddress
+    contactName
+    contactPhone
+    contactEmail
+    comments
+    }
+  }
+}
+```
+
+Delete
+```
+mutation{
+ deleteSite(input: { id:"U2l0ZU5vZGU6Ng==" }) {
+    site {
+    id
+    name
+    slug
+    region {
+      name
+    }
+    tenant {
+      name
+    }
+    facility
+    asn
+    physicalAddress
+    shippingAddress
+    contactName
+    contactPhone
+    contactEmail
+    comments
+    }
+  }
+}
+```
