@@ -20,7 +20,6 @@ class TenantGroupNode(DjangoObjectType):
             'slug': string_types,
         }
 
-
 class TenantNode(DjangoObjectType):
     class Meta:
         model = Tenant
