@@ -124,7 +124,7 @@ def initialize_region(id):
     region.save()
     return region
 
-def initialize_(id):
+def initialize_site(id):
     region = initialize_region(id)
     tenant = initialize_tenant(id)
 
@@ -143,5 +143,5 @@ def initialize_(id):
         contact_email = 'a@gmail.com',
         comments = 'comment'
     )
-    region.save()
-    return region
+    site.save()
+    return site
