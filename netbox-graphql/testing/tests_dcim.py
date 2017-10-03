@@ -1,7 +1,7 @@
 import pytest
 from graphene.test import Client
 from snapshottest import TestCase
-from .data import initialize_region, initialize_site, initialize_tenant
+from .data import initialize_region, initialize_tenant, initialize_site
 from ..schema import schema
 from dcim.models import Tenant
 from dcim.models import Device, Interface, Site, Region
@@ -216,7 +216,7 @@ class SiteTestCase(TestCase):
           }
         }
         '''
-        expected = {'sites': {'edges': [{'node': {'id': 'U2l0ZU5vZGU6MTY=', 'name': 'Name16', 'slug': 'slug-16',
+        expected = {'sites': {'edges': [{'node': {'id': 'U2l0ZU5vZGU6MTY=', 'name': 'Site Name 16', 'slug': 'site-name 16',
                                                   'region': {'name': 'Region16'}, 'tenant': {'name': 'Tenant 16'},
                                                   'facility': 'fac', 'asn': 12.0, 'physicalAddress': 'A1',
                                                   'shippingAddress': 'A2', 'contactName': 'Name', 'contactPhone': '123',
@@ -293,7 +293,7 @@ class SiteTestCase(TestCase):
         }
         '''
         expected = {'deleteSite': {
-            'site': {'id': 'U2l0ZU5vZGU6Tm9uZQ==', 'name': 'Name15', 'slug': 'slug-15', 'region': {'name': 'Region15'},
+            'site': {'id': 'U2l0ZU5vZGU6Tm9uZQ==', 'name': 'Site Name 15', 'slug': 'site-name 15', 'region': {'name': 'Region15'},
                      'tenant': {'name': 'Tenant 15'}, 'facility': 'fac', 'asn': 12.0, 'physicalAddress': 'A1',
                      'shippingAddress': 'A2', 'contactName': 'Name', 'contactPhone': '123',
                      'contactEmail': 'a@gmail.com', 'comments': 'comment'}}}

@@ -64,10 +64,23 @@ def initialize_circuit(id):
     return circuit
 
 def initialize_site(id):
+    region = initialize_region(id)
+    tenant = initialize_tenant(id)
+
     site = Site(
         id = id,
         name = 'Site Name ' + id,
-        slug = 'site-name ' + id
+        slug = 'site-name ' + id,
+        region = region,
+        tenant = tenant,
+        facility = 'fac',
+        asn = 12,
+        physical_address = 'A1',
+        shipping_address = 'A2',
+        contact_name = 'Name',
+        contact_phone = '123',
+        contact_email = 'a@gmail.com',
+        comments = 'comment'
     )
     site.save()
     return site
@@ -123,25 +136,3 @@ def initialize_region(id):
     )
     region.save()
     return region
-
-def initialize_site(id):
-    region = initialize_region(id)
-    tenant = initialize_tenant(id)
-
-    site = Site(
-        id = id,
-        name = 'Name' + id,
-        slug = 'slug-' + id,
-        region = region,
-        tenant = tenant,
-        facility = 'fac',
-        asn = 12,
-        physical_address = 'A1',
-        shipping_address = 'A2',
-        contact_name = 'Name',
-        contact_phone = '123',
-        contact_email = 'a@gmail.com',
-        comments = 'comment'
-    )
-    site.save()
-    return site
