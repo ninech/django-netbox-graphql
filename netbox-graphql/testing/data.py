@@ -1,6 +1,8 @@
 from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
-from dcim.models import Site, Interface
+from dcim.models import Site, Interface, Region
+from tenancy.models import Tenant, TenantGroup
 
+# circuits
 def initialize_circuit_type():
     circuit_type = CircuitType(
         id = '111',
@@ -62,10 +64,23 @@ def initialize_circuit(id):
     return circuit
 
 def initialize_site(id):
+    region = initialize_region(id)
+    tenant = initialize_tenant(id)
+
     site = Site(
         id = id,
         name = 'Site Name ' + id,
-        slug = 'site-name ' + id
+        slug = 'site-name ' + id,
+        region = region,
+        tenant = tenant,
+        facility = 'fac',
+        asn = 12,
+        physical_address = 'A1',
+        shipping_address = 'A2',
+        contact_name = 'Name',
+        contact_phone = '123',
+        contact_email = 'a@gmail.com',
+        comments = 'comment'
     )
     site.save()
     return site
@@ -86,3 +101,38 @@ def initialize_circuit_termination(id):
     )
     circuit_termination.save()
     return circuit_termination
+
+# tenancy
+
+def initialize_tenant_group(id):
+    tenant_group = TenantGroup(
+        id = id,
+        name = 'Tenant Group' + id,
+        slug = 'tenant-group-' + id
+    )
+    tenant_group.save()
+    return  tenant_group
+
+def initialize_tenant(id):
+    tenant_goup = initialize_tenant_group(id)
+    tenant = Tenant(
+        id = id,
+        name = 'Tenant ' + id,
+        slug = 'tenant-' + id,
+        group = tenant_goup,
+        description = 'desc',
+        comments = 'comment'
+    )
+    tenant.save()
+    return tenant
+
+# dcim
+
+def initialize_region(id):
+    region = Region(
+        id = id,
+        name = 'Region' + id,
+        slug = 'region-' + id
+    )
+    region.save()
+    return region

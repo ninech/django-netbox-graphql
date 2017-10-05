@@ -101,23 +101,18 @@ class DeleteCircuitType(ClientIDMutation):
         temp.delete()
         return DeleteCircuitType(circuit_type=temp)
 
-class CircuitTypeMutation(AbstractType):
-    new_circuit_type = NewCircuitType.Field()
-    update_circuit_type = UpdateCircuitType.Field()
-    delete_circuit_type = DeleteCircuitType.Field()
-
 class NewProvider(ClientIDMutation):
     provider = Field(ProviderNode)
     class Input:
         name = String()
         slug = String()
         asn = Float()
-        account = String(default_value="")
-        portal_url = String(default_value="")
-        noc_contact = String(default_value="")
-        admin_contact = String(default_value="")
-        comments = String(default_value="")
-        custom_field_values = String(default_value="")
+        account = String(default_value=None)
+        portal_url = String(default_value=None)
+        noc_contact = String(default_value=None)
+        admin_contact = String(default_value=None)
+        comments = String(default_value=None)
+        custom_field_values = String(default_value=None)
 
     @classmethod
     def mutate_and_get_payload(cls, input, context, info):
@@ -156,11 +151,6 @@ class DeleteProvider(ClientIDMutation):
         temp = Provider.objects.get(pk=from_global_id(input.get('id'))[1])
         temp.delete()
         return DeleteProvider(provider=temp)
-
-class ProviderMutation(AbstractType):
-    new_provider = NewProvider.Field()
-    update_provider = UpdateProvider.Field()
-    delete_provider = DeleteProvider.Field()
 
 class NewCircuit(ClientIDMutation):
     circuit = Field(CircuitNode)
@@ -236,11 +226,6 @@ class DeleteCircuit(ClientIDMutation):
         temp.delete()
         return DeleteCircuit(circuit=temp)
 
-class CircuitMutation(AbstractType):
-    new_circuit = NewCircuit.Field()
-    update_circuit = UpdateCircuit.Field()
-    delete_circuit = DeleteCircuit.Field()
-
 class NewCircuitTermination(ClientIDMutation):
     circuit_termination = Field(CircuitTerminationNode)
     class Input:
@@ -313,7 +298,20 @@ class DeleteCircuitTermination(ClientIDMutation):
         temp.delete()
         return DeleteCircuitTermination(circuit_termination=temp)
 
-class CircuitTerminationMutation(AbstractType):
+class CircuitsMutations(AbstractType):
+    # Circuit
+    new_circuit = NewCircuit.Field()
+    update_circuit = UpdateCircuit.Field()
+    delete_circuit = DeleteCircuit.Field()
+    # Provider
+    new_provider = NewProvider.Field()
+    update_provider = UpdateProvider.Field()
+    delete_provider = DeleteProvider.Field()
+    # CircuitType
+    new_circuit_type = NewCircuitType.Field()
+    update_circuit_type = UpdateCircuitType.Field()
+    delete_circuit_type = DeleteCircuitType.Field()
+    # CircuitTermination
     new_circuit_termination = NewCircuitTermination.Field()
     update_circuit_termination = UpdateCircuitTermination.Field()
     delete_circuit_termination = DeleteCircuitTermination.Field()

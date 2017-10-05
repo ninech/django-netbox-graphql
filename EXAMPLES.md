@@ -1,3 +1,5 @@
+## Circuits
+
 ### CircuitType
 
 Get all
@@ -356,3 +358,319 @@ mutation {
 }
 ```
 
+# Tenancies
+
+### TenantGroup
+
+Get all
+```
+{
+  tenantGroups {
+    edges {
+      node {
+        id
+        name
+        slug
+      }
+    }
+  }
+}
+```
+
+Create 
+```
+mutation{
+  newTenantGroup(input: {name: "TenantGroupA", slug: "tenant-group-A"}) {
+    tenantGroup{
+      id
+      name
+      slug
+    }
+  }
+}
+```
+
+Update
+```
+mutation{
+  updateTenantGroup(input: {id: "VGVuYW50R3JvdXBOb2RlOjQ=", name: "TenantGroup1", slug: "tenant-group-1"}) {
+    tenantGroup{
+      id
+      name
+      slug
+    }
+  }
+}
+```
+
+Delete
+```
+mutation{
+  deleteTenantGroup(input: {id: "VGVuYW50R3JvdXBOb2RlOjM="}) {
+    tenantGroup{
+      id
+      name
+      slug
+    }
+  }
+}
+```
+
+### Tenant
+
+Get all
+```
+{
+  tenants {
+    edges {
+      node {
+        id
+        name
+        slug
+        group {
+          id
+        }
+        description
+        comments
+      }
+    }
+  }
+}
+```
+
+Create 
+```
+mutation {
+  newTenant(input: {name: "Tenant 1", slug: "tenant-1", group: "VGVuYW50R3JvdXBOb2RlOjE=", description: "desc", comments: "comments"}) {
+    tenant {
+      id
+      name
+      slug
+            group {
+        	id
+      	} 
+      description
+      comments
+    }
+  }
+}
+```
+
+Update
+```
+mutation {
+  updateTenant(input: {id: "VGVuYW50Tm9kZTox", name: "Tenant A", slug: "tenant-A", group: "VGVuYW50R3JvdXBOb2RlOjE=", description: "descA", comments: "commentsA"}) {
+    tenant {
+      id
+      name
+      slug
+      group {
+        id
+      } 
+      description
+      comments
+    }
+  }
+}
+```
+
+Delete
+```
+mutation {
+  deleteTenant(input: {id: "VGVuYW50Tm9kZTox"}) {
+    tenant {
+      id
+      name
+      slug
+      group {
+        id
+      } 
+      description
+      comments
+    }
+  }
+}
+```
+
+# DCIM
+
+### Region
+
+Get all
+```
+{
+  regions {
+    edges {
+      node {
+        id
+        name
+        slug
+        parent {
+          name          
+        }
+      }
+    }
+  }
+}
+```
+
+Create 
+```
+mutation{
+  newRegion(input: { parent:"UmVnaW9uTm9kZTo0", name: "Region 1", slug: "region-1"}) {
+    region{
+      id
+      name
+      slug
+      parent{
+        name
+      }
+    }
+  }
+}
+```
+
+Update
+```
+mutation{
+  updateRegion(input: { id:"UmVnaW9uTm9kZTo1", parent:"UmVnaW9uTm9kZTo0", name: "Region C", slug: "region-c"}) {
+    region{
+      id
+      name
+      slug
+      parent{
+        name
+      }
+    }
+  }
+}
+```
+
+Delete
+```
+mutation{
+  deleteRegion(input: { id:"UmVnaW9uTm9kZTo1"}) {
+    region{
+      id
+      name
+      slug
+      parent{
+        name
+      }
+    }
+  }
+}
+```
+
+### Site
+
+Get all
+```
+{
+  sites {
+    edges {
+      node {
+        id
+        name
+        slug
+        region {
+          name
+        }
+        tenant {
+          name
+        }
+        facility
+        asn
+        physicalAddress
+        shippingAddress
+        contactName
+        contactPhone
+        contactEmail
+        comments
+      }
+    }
+  }
+}
+```
+
+Create 
+```
+mutation{
+  newSite(input: { name:"Site 3", slug: "site3", region:"UmVnaW9uTm9kZTo0", tenant: "VGVuYW50Tm9kZToy", facility: "A", 
+    asn: 12, physicalAddress:"A1", shippingAddress: "A2", contactName: "Name", contactPhone: "123",  contactEmail:"a@gmail.com", comments: "comments"}) {
+    site {
+    id      
+    name
+    slug
+    region {
+      name
+    }
+    tenant {
+      name
+    }
+    facility
+    asn
+    physicalAddress
+    shippingAddress
+    contactName
+    contactPhone
+    contactEmail
+    comments
+    }
+  }
+}
+```
+
+Update
+```
+mutation{
+  updateSite(input: { id: "U2l0ZU5vZGU6Ng==" name:"Site 5", slug: "site6", region:"UmVnaW9uTm9kZTo0", tenant: "VGVuYW50Tm9kZToy", facility: "A", asn: 12, physicalAddress:"A1", shippingAddress: "A2", contactName: "Name", contactPhone: "456",  contactEmail:"a@gmail.com", comments: "comments"}) {
+    site {
+    id
+    name
+    slug
+    region {
+      name
+    }
+    tenant {
+      name
+    }
+    facility
+    asn
+    physicalAddress
+    shippingAddress
+    contactName
+    contactPhone
+    contactEmail
+    comments
+    }
+  }
+}
+```
+
+Delete
+```
+mutation{
+ deleteSite(input: { id:"U2l0ZU5vZGU6Ng==" }) {
+    site {
+    id
+    name
+    slug
+    region {
+      name
+    }
+    tenant {
+      name
+    }
+    facility
+    asn
+    physicalAddress
+    shippingAddress
+    contactName
+    contactPhone
+    contactEmail
+    comments
+    }
+  }
+}
+```
