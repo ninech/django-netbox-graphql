@@ -149,7 +149,7 @@ Can be found at https://pypi.python.org/pypi?:action=display&name=django-netbox-
 
 About
 -----
-This module is currently maintained and funded by `nine.ch <https://nine.ch>`_
+This module is currently maintained and funded by `nine <https://www.nine.ch>`_
 
-.. image:: https://blog.nine.ch/assets/logo.png
+.. image:: https://logo.apps.at-nine.ch/Dmqied_eSaoBMQwk3vVgn4UIgDo=/trim/500x0/logo_claim.png
  :target: https://nine.ch
