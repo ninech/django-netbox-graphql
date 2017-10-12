@@ -674,3 +674,65 @@ mutation{
   }
 }
 ```
+
+# IPAM
+
+### Role
+
+Get all
+```
+{
+  vlanRoles {
+    edges {
+      node {
+        id
+        slug
+        name
+        weight        
+      }
+    }
+  }
+}
+```
+
+Create 
+```
+mutation{
+  newVlanRole(input: { name: "VlanRole 1", slug: "vlanrole-1", weight: 1001}) {
+    vlanRole{
+      id
+      name
+      slug
+      weight
+    }
+  }
+}
+```
+
+Update
+```
+mutation{
+  updateVlanRole(input: { id: "Um9sZU5vZGU6Ng==", name: "VlanRole A", slug: "vlanrole-a", weight: 1002}) {
+    vlanRole{
+      id
+      name
+      slug
+      weight
+    }
+  }
+}
+```
+
+Delete
+```
+mutation{
+  deleteVlanRole(input: { id: "Um9sZU5vZGU6Ng==" }) {
+    vlanRole{
+      id
+      name
+      slug
+      weight
+    }
+  }
+}
+```

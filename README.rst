@@ -13,6 +13,14 @@ Available Models for CRUD
     * Circuit
     * CircuitType
     * CircuitTermination
+* DCIM
+    * Region
+    * Site
+* TENANCY
+    * TenantGroup
+    * Tenant
+* IPAM
+    * Role
 
 Build package (optional)
 ------------------------
