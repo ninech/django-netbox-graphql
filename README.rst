@@ -21,6 +21,7 @@ Available Models for CRUD
     * Tenant
 * IPAM
     * Role
+    * VlanGroup
 
 Build package (optional)
 ------------------------

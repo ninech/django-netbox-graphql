@@ -677,7 +677,7 @@ mutation{
 
 # IPAM
 
-### Role
+### Vlan Role
 
 Get all
 ```
@@ -732,6 +732,74 @@ mutation{
       name
       slug
       weight
+    }
+  }
+}
+```
+ 
+ ### VLAN Group
+ 
+ Get all
+```
+{
+  vlanGroups {
+    edges {
+      node {
+        id
+        name
+        slug
+        site {
+          name
+        }
+      }
+    }
+  }
+}
+```
+ 
+ Create 
+```
+mutation{
+  newVlanGroup(input: { name: "VlanRole 1", slug: "vlanrole-1", site: "U2l0ZU5vZGU6MQ=="}) {
+    vlanGroup{
+      id
+      name
+      slug
+      site {
+        name
+      }
+    }
+  }
+}
+```
+ 
+ Update
+```
+mutation{
+  updateVlanGroup(input: { id:"VkxBTkdyb3VwTm9kZToy", name: "VlanRole A", slug: "vlanrole-A", site: "U2l0ZU5vZGU6MQ=="}) {
+    vlanGroup{
+      id
+      name
+      slug
+      site {
+        name
+      }
+    }
+  }
+}
+```
+ 
+ Delete
+```
+mutation{
+  deleteVlanGroup(input: { id:"VkxBTkdyb3VwTm9kZToy"}) {
+    vlanGroup{
+      id
+      name
+      slug
+      site {
+        name
+      }
     }
   }
 }
