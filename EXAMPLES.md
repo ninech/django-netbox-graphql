@@ -804,3 +804,96 @@ mutation{
   }
 }
 ```
+
+ ### VLAN
+ 
+ Get all
+```
+ vlans {
+    edges {
+      node {
+        id
+        name
+        description
+        vid
+        site{
+          name
+        }
+        group{
+          name
+        }
+        tenant{
+          name
+        }
+        role{
+          name
+        }
+      }
+    }
+  }
+```
+ 
+ Create 
+```
+mutation{
+  newVlan(input: {  site: "U2l0ZU5vZGU6MQ==", group: "VkxBTkdyb3VwTm9kZTox", tenant: "VGVuYW50Tm9kZToy", role: "Um9sZU5vZGU6NA==", vid: 2, name: "vlan2", description: "test"}) {
+    vlan{
+      id
+      name
+      site {
+        name
+      }
+      group{
+        name
+      } 
+      tenant{
+        name
+      }
+      role{
+        name
+      }
+      vid
+      name
+      description
+    }
+  }
+}
+```
+ 
+ Update
+```
+mutation{
+  updateVlan(input: { id:"VkxBTk5vZGU6Mg==", site: "U2l0ZU5vZGU6MQ==", group: "VkxBTkdyb3VwTm9kZTox", tenant: "VGVuYW50Tm9kZToy", role: "Um9sZU5vZGU6NA==", vid: 3, name: "vlanA", description: "desc"}) {
+    vlan{
+      id
+      name
+      site {
+        name
+      }
+      group{
+        name
+      } 
+      tenant{
+        name
+      }
+      role{
+        name
+      }
+      vid
+      name
+      description
+    }
+  }
+}
+```
+ 
+ Delete
+```
+mutation{
+  deleteVlan(input: { id:"VkxBTk5vZGU6Mg=="}) {
+    vlan{
+      id      
+    }
+  }
+}
+```

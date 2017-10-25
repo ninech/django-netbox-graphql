@@ -22,6 +22,7 @@ Available Models for CRUD
 * IPAM
     * Role
     * VlanGroup
+    * VLAN
 
 Build package (optional)
 ------------------------
