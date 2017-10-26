@@ -1,7 +1,7 @@
 from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
 from dcim.models import Site, Interface, Region
 from tenancy.models import Tenant, TenantGroup
-from ipam.models import Role,VLANGroup
+from ipam.models import Role, VLANGroup, VLAN
 
 # circuits
 def initialize_circuit_type():
@@ -160,3 +160,19 @@ def initialize_vlan_group(id):
     )
     vlan_group.save()
     return vlan_group
+
+def initialize_vlan(id):
+    tenant = initialize_tenant(id)
+    role = initialize_vlan_role(id)
+
+    vlan = VLAN(
+        id = id,
+        vid = 2,
+        name = 'vlan' + id,
+        status = 1,
+        description = 'desc',
+        tenant = tenant,
+        role = role,
+    )
+    vlan.save()
+    return vlan

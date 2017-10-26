@@ -809,7 +809,7 @@ mutation{
  
  Get all
 ```
- vlans {
+ { vlans {
     edges {
       node {
         id
