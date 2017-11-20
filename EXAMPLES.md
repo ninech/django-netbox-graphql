@@ -897,3 +897,71 @@ mutation{
   }
 }
 ```
+
+### VRF
+ Get all
+```
+{
+  vrfs {
+    edges {
+      node {
+        id
+        name
+        rd    
+        description
+        enforceUnique
+        tenant {
+          name
+        }      
+      }
+    }
+  }
+}
+```
+ 
+ Create 
+```
+mutation{
+  newVrf(input: { tenant: "VGVuYW50Tm9kZToy",  name: "vrf", rd: "rd", enforceUnique: true, description: "desc" }) {
+    vrf{
+        id
+        name
+        rd    
+        description
+        enforceUnique
+        tenant {
+        name
+      }      
+    }
+  }
+}
+```
+ 
+ Update
+```
+mutation{
+  updateVrf(input: { id: "VlJGTm9kZToy", tenant: "VGVuYW50Tm9kZToy",  name: "vrfA", rd: "rd", enforceUnique: true, description: "desc" }) {
+    vrf{
+        id
+        name
+        rd    
+        description
+        enforceUnique
+        tenant {
+        name
+      }      
+    }
+  }
+}
+```
+ 
+ Delete
+```
+mutation{
+  deleteVrf(input: { id: "VlJGTm9kZTox" }) {
+    vrf{
+       id    
+    }
+  }
+}
+```

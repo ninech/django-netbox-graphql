@@ -8,7 +8,7 @@ from graphene import ID, Boolean, Float, Int, List, String
 from graphql_relay.node.node import from_global_id
 from .custom_filter_fields import date_types, string_types, number_types
 from .helper_methods import not_none, set_and_save
-from ipam.models import IPAddress, VLANGroup, Role, VLAN
+from ipam.models import IPAddress, VLANGroup, Role, VLAN, VRF
 from tenancy.models import Tenant
 from ipam.fields import IPNetworkField, IPAddressField
 from dcim.models import Site
@@ -56,12 +56,22 @@ class VLANNode(DjangoObjectType):
             'name': string_types,
         }
 
+class VRFNode(DjangoObjectType):
+    class Meta:
+        model = VRF
+        interfaces = (Node, )
+        filter_fields = {
+            'id': ['exact'],
+            'name': string_types,
+        }
+
 # Queries
 class IpamQuery(AbstractType):
     ip_address = DjangoFilterConnectionField(IPAddressNode)
     vlan_roles = DjangoFilterConnectionField(RoleNode)
     vlan_groups = DjangoFilterConnectionField(VLANGroupNode)
     vlans = DjangoFilterConnectionField(VLANNode)
+    vrfs = DjangoFilterConnectionField(VRFNode)
 
 # Mutations
 class NewRole(ClientIDMutation):
@@ -236,6 +246,61 @@ class DeleteVLAN(ClientIDMutation):
         temp.delete()
         return DeleteVLAN(vlan=temp)
 
+# VRF
+class NewVRF(ClientIDMutation):
+    vrf = Field(VRFNode)
+    class Input:
+        name = String(default_value=None)
+        rd = String(default_value=None)
+        tenant = String(default_value=None)
+        enforce_unique = Boolean(default_value=None)
+        description = String(default_value=None)
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        tenant = input.get('tenant')
+
+        temp = VRF()
+
+        if not_none(tenant):
+            temp.tenant = Tenant.objects.get(pk=from_global_id(tenant)[1])
+
+        fields = ['name', 'rd', 'enforce_unique', 'description']
+        return NewVRF(vrf=set_and_save(fields, input, temp))
+
+class UpdateVRF(ClientIDMutation):
+    vrf = Field(VRFNode)
+    class Input:
+        id = String()
+        name = String(default_value=None)
+        rd = String(default_value=None)
+        tenant = String(default_value=None)
+        enforce_unique = Boolean(default_value=None)
+        description = String(default_value=None)
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        temp = VRF.objects.get(pk=from_global_id(input.get('id'))[1])
+
+        tenant = input.get('tenant')
+
+        if not_none(tenant):
+            temp.tenant = Tenant.objects.get(pk=from_global_id(tenant)[1])
+
+        fields = ['name', 'rd', 'enforce_unique', 'description']
+        return UpdateVRF(vrf=set_and_save(fields, input, temp))
+
+class DeleteVRF(ClientIDMutation):
+    vrf = Field(VRFNode)
+    class Input:
+        id = String()
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        temp = VRF.objects.get(pk=from_global_id(input.get('id'))[1])
+        temp.delete()
+        return DeleteVRF(vrf=temp)
+
 class IpamMutations(AbstractType):
     # Roles
     new_vlan_role = NewRole.Field()
@@ -249,3 +314,7 @@ class IpamMutations(AbstractType):
     new_vlan = NewVLAN.Field()
     update_vlan = UpdateVLAN.Field()
     delete_vlan = DeleteVLAN.Field()
+    # VRF
+    new_vrf = NewVRF.Field()
+    update_vrf = UpdateVRF.Field()
+    delete_vrf = DeleteVRF.Field()

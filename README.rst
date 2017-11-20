@@ -23,6 +23,7 @@ Available Models for CRUD
     * Role
     * VlanGroup
     * VLAN
+    * VRF
 
 Build package (optional)
 ------------------------
