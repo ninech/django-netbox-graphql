@@ -24,6 +24,7 @@ Available Models for CRUD
     * VlanGroup
     * VLAN
     * VRF
+    * RIR
 
 Build package (optional)
 ------------------------

@@ -8,7 +8,7 @@ from graphene import ID, Boolean, Float, Int, List, String
 from graphql_relay.node.node import from_global_id
 from .custom_filter_fields import date_types, string_types, number_types
 from .helper_methods import not_none, set_and_save
-from ipam.models import IPAddress, VLANGroup, Role, VLAN, VRF
+from ipam.models import IPAddress, VLANGroup, Role, VLAN, VRF, RIR
 from tenancy.models import Tenant
 from ipam.fields import IPNetworkField, IPAddressField
 from dcim.models import Site
@@ -26,6 +26,9 @@ class IPAddressNode(DjangoObjectType):
     class Meta:
         model = IPAddress
         interfaces = (Node, )
+        filter_fields = {
+            'id': ['exact']
+        }
 
 class RoleNode(DjangoObjectType):
     class Meta:
@@ -65,6 +68,16 @@ class VRFNode(DjangoObjectType):
             'name': string_types,
         }
 
+class RIRNode(DjangoObjectType):
+    class Meta:
+        model = RIR
+        interfaces = (Node, )
+        filter_fields = {
+            'id': ['exact'],
+            'name': string_types,
+            'slug': ['exact'],
+        }
+
 # Queries
 class IpamQuery(AbstractType):
     ip_address = DjangoFilterConnectionField(IPAddressNode)
@@ -72,6 +85,7 @@ class IpamQuery(AbstractType):
     vlan_groups = DjangoFilterConnectionField(VLANGroupNode)
     vlans = DjangoFilterConnectionField(VLANNode)
     vrfs = DjangoFilterConnectionField(VRFNode)
+    rirs = DjangoFilterConnectionField(RIRNode)
 
 # Mutations
 class NewRole(ClientIDMutation):
@@ -301,6 +315,48 @@ class DeleteVRF(ClientIDMutation):
         temp.delete()
         return DeleteVRF(vrf=temp)
 
+# RIR
+class NewRIR(ClientIDMutation):
+    rir = Field(RIRNode)
+    class Input:
+        name = String(default_value=None)
+        slug = String(default_value=None)
+        is_private = Boolean(default_value=None)
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+
+        temp = RIR()
+
+        fields = ['name', 'slug', 'is_private']
+        return NewRIR(rir=set_and_save(fields, input, temp))
+
+class UpdateRIR(ClientIDMutation):
+    rir = Field(RIRNode)
+    class Input:
+        id = String()
+        name = String(default_value=None)
+        slug = String(default_value=None)
+        is_private = Boolean(default_value=None)
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        temp = RIR.objects.get(pk=from_global_id(input.get('id'))[1])
+
+        fields = ['name', 'slug', 'is_private']
+        return UpdateRIR(rir=set_and_save(fields, input, temp))
+
+class DeleteRIR(ClientIDMutation):
+    rir = Field(RIRNode)
+    class Input:
+        id = String()
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        temp = RIR.objects.get(pk=from_global_id(input.get('id'))[1])
+        temp.delete()
+        return DeleteRIR(rir=temp)
+
 class IpamMutations(AbstractType):
     # Roles
     new_vlan_role = NewRole.Field()
@@ -318,3 +374,7 @@ class IpamMutations(AbstractType):
     new_vrf = NewVRF.Field()
     update_vrf = UpdateVRF.Field()
     delete_vrf = DeleteVRF.Field()
+    # RIR
+    new_rir = NewRIR.Field()
+    update_rir = UpdateRIR.Field()
+    delete_rir = DeleteRIR.Field()

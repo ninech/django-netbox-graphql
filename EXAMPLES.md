@@ -965,3 +965,62 @@ mutation{
   }
 }
 ```
+
+### RIR
+ Get all
+```
+{
+  rirs {
+    edges {
+      node {
+        id
+        name
+        slug
+        isPrivate
+      }
+    }
+  }
+}
+```
+ 
+ Create 
+```
+mutation{
+  newRir(input: { name: "rir",  slug: "rir", isPrivate: true }) {
+    rir{
+        id
+        name
+        slug
+        isPrivate     
+    }
+  }
+}
+```
+ 
+ Update
+```
+mutation{
+  updateRir(input: { id:"UklSTm9kZTo3", name: "rirA",  slug: "rira", isPrivate: true }) {
+    rir{
+        id
+        name
+        slug
+        isPrivate     
+    }
+  }
+}
+```
+ 
+ Delete
+```
+mutation{
+  deleteRir(input: { id:"UklSTm9kZTo3" }) {
+    rir{
+        id
+        name
+        slug
+        isPrivate     
+    }
+  }
+}
+```
