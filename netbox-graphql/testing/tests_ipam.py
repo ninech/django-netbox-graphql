@@ -1,7 +1,7 @@
 import pytest
 from graphene.test import Client
 from snapshottest import TestCase
-from .data import initialize_vlan_role, initialize_vlan_group, initialize_site, initialize_vlan, initialize_tenant, initialize_vrf
+from .data import initialize_vlan_role, initialize_vlan_group, initialize_site, initialize_vlan, initialize_tenant, initialize_vrf, initialize_rir
 from ..schema import schema
 from ..helper_methods import print_result
 
@@ -85,6 +85,23 @@ class FieldsTestCase(TestCase):
                 tenant {
                   name
                 }
+              }
+            }
+          }
+        }
+        '''))
+
+    def test_rir(self):
+        client = Client(schema)
+        self.assertMatchSnapshot(client.execute('''
+        {
+          rirs {
+            edges {
+              node {
+                id
+                name
+                slug
+                isPrivate
               }
             }
           }
@@ -443,6 +460,88 @@ class VRFTestCase(TestCase):
         }
         '''
         expected = {'deleteVrf': {'vrf': {'name': 'vrf1094'}}}
+
+        result = schema.execute(query)
+        assert not result.errors
+        assert result.data == expected
+
+class RIRTestCase(TestCase):
+    def test_creating_new_rir(self):
+        query = '''
+        mutation{
+          newRir(input: { name: "rir",  slug: "rir", isPrivate: true }) {
+            rir{
+                id
+                name
+                slug
+                isPrivate
+            }
+          }
+        }
+        '''
+        expected = {'newRir': {'rir': {'id': 'UklSTm9kZTox', 'name': 'rir', 'slug': 'rir', 'isPrivate': True}}}
+
+        result = schema.execute(query)
+        assert not result.errors
+        assert result.data == expected
+
+    def test_correct_fetch_of_rir(self):
+        initialize_rir('2')
+        query = '''
+        {
+          rirs(id: "UklSTm9kZToy") {
+            edges {
+              node {
+                id
+                name
+                slug
+                isPrivate
+              }
+            }
+          }
+        }
+        '''
+        expected = {'rirs': {'edges': [{'node': {'id': 'UklSTm9kZToy', 'name': 'rir2', 'slug': 'rir2', 'isPrivate': True}}]}}
+
+        result = schema.execute(query)
+        assert not result.errors
+        assert result.data == expected
+
+    def test_update_rir(self):
+        initialize_rir('3')
+        query = '''
+        mutation{
+          updateRir(input: { id:"UklSTm9kZToz", name: "rirA",  slug: "rira", isPrivate: true }) {
+            rir{
+                id
+                name
+                slug
+                isPrivate
+            }
+          }
+        }
+        '''
+        expected = {'updateRir': {'rir': {'id': 'UklSTm9kZToz', 'name': 'rirA', 'slug': 'rira', 'isPrivate': True}}}
+
+        result = schema.execute(query)
+        assert not result.errors
+        assert result.data == expected
+
+    def test_delete_rir(self):
+        initialize_rir('1')
+        query = '''
+        mutation{
+          deleteRir(input: { id:"UklSTm9kZTox" }) {
+            rir{
+                id
+                name
+                slug
+                isPrivate
+            }
+          }
+        }
+        '''
+        expected = {'deleteRir': {'rir': {'id': 'UklSTm9kZTpOb25l', 'name': 'rir1', 'slug': 'rir1', 'isPrivate': True}}}
 
         result = schema.execute(query)
         assert not result.errors

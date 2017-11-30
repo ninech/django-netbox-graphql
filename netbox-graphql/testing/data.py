@@ -190,3 +190,13 @@ def initialize_vrf(id):
     )
     vrf.save()
     return vrf
+
+def initialize_rir(id):
+    rir = RIR(
+        id = id,
+        name = 'rir' + id,
+        slug = 'rir' + id,
+        is_private = True
+    )
+    rir.save()
+    return rir
