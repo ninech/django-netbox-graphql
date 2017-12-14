@@ -8,7 +8,7 @@ from graphene import ID, Boolean, Float, Int, List, String
 from graphql_relay.node.node import from_global_id
 from .custom_filter_fields import date_types, string_types, number_types
 from .helper_methods import not_none, set_and_save
-from ipam.models import IPAddress, VLANGroup, Role, VLAN, VRF, RIR
+from ipam.models import IPAddress, VLANGroup, Role, VLAN, VRF, RIR, Aggregate
 from tenancy.models import Tenant
 from ipam.fields import IPNetworkField, IPAddressField
 from dcim.models import Site
@@ -78,6 +78,14 @@ class RIRNode(DjangoObjectType):
             'slug': ['exact'],
         }
 
+class AggregateNode(DjangoObjectType):
+    class Meta:
+        model = Aggregate
+        interfaces = (Node, )
+        filter_fields = {
+            'id': ['exact'],
+        }
+
 # Queries
 class IpamQuery(AbstractType):
     ip_address = DjangoFilterConnectionField(IPAddressNode)
@@ -86,6 +94,7 @@ class IpamQuery(AbstractType):
     vlans = DjangoFilterConnectionField(VLANNode)
     vrfs = DjangoFilterConnectionField(VRFNode)
     rirs = DjangoFilterConnectionField(RIRNode)
+    aggregates = DjangoFilterConnectionField(AggregateNode)
 
 # Mutations
 class NewRole(ClientIDMutation):
@@ -357,6 +366,61 @@ class DeleteRIR(ClientIDMutation):
         temp.delete()
         return DeleteRIR(rir=temp)
 
+# Aggregate
+class NewAggregate(ClientIDMutation):
+    aggregate = Field(AggregateNode)
+    class Input:
+        family = Int(default_value=None)
+        prefix = String(default_value=None)
+        rir = String(default_value=None)
+        date_added = String(default_value=None)
+        description = String(default_value=None)
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        rir = input.get('rir')
+
+        temp = Aggregate()
+
+        if not_none(rir):
+            temp.rir = RIR.objects.get(pk=from_global_id(rir)[1])
+
+        fields = ['family', 'prefix', 'date_added', 'description']
+        return NewAggregate(aggregate=set_and_save(fields, input, temp))
+
+class UpdateAggregate(ClientIDMutation):
+    aggregate = Field(AggregateNode)
+    class Input:
+        id = String()
+        family = Int(default_value=None)
+        prefix = String(default_value=None)
+        rir = String(default_value=None)
+        date_added = String(default_value=None)
+        description = String(default_value=None)
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        rir = input.get('rir')
+        temp = Aggregate.objects.get(pk=from_global_id(input.get('id'))[1])
+
+        if not_none(rir):
+            temp.rir = RIR.objects.get(pk=from_global_id(rir)[1])
+
+        fields = ['family', 'prefix', 'date_added', 'description']
+
+        return UpdateAggregate(aggregate=set_and_save(fields, input, temp))
+
+class DeleteAggregate(ClientIDMutation):
+    aggregate = Field(AggregateNode)
+    class Input:
+        id = String()
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        temp = Aggregate.objects.get(pk=from_global_id(input.get('id'))[1])
+        temp.delete()
+        return DeleteAggregate(aggregate=temp)
+
 class IpamMutations(AbstractType):
     # Roles
     new_vlan_role = NewRole.Field()
@@ -378,3 +442,7 @@ class IpamMutations(AbstractType):
     new_rir = NewRIR.Field()
     update_rir = UpdateRIR.Field()
     delete_rir = DeleteRIR.Field()
+    # Aggregate
+    new_aggregate = NewAggregate.Field()
+    update_aggregate = UpdateAggregate.Field()
+    delete_aggregate = DeleteAggregate.Field()

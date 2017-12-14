@@ -1024,3 +1024,82 @@ mutation{
   }
 }
 ```
+
+### Aggregate
+ Get all
+```
+{
+  aggregates {
+    edges {
+      node {
+        id
+        family
+        prefix
+        rir {
+          id
+          name
+        }
+        dateAdded
+       description
+      }
+    }
+  }
+}
+```
+ 
+ Create 
+```
+mutation{
+  newAggregate(input: { family: 4, prefix: "173.16.0.0/12", rir: "UklSTm9kZTo1", dateAdded: "2015-01-01", description: "desc" }) {
+    aggregate{
+        id
+        family
+        prefix
+        rir {
+          id
+          name
+        }
+        dateAdded
+        description   
+    }
+  }
+}
+```
+ 
+ Update
+```
+mutation{
+  updateAggregate(input: { id: "QWdncmVnYXRlTm9kZTox", rir: "UklSTm9kZTo1", dateAdded: "2017-01-01", description: "desc", prefix: "14.0.0.0/8"}) {
+    aggregate{
+        id
+        family
+        prefix
+        rir {
+          id
+          name
+        }
+    	dateAdded
+        description 
+    }
+  }
+}
+```
+ 
+ Delete
+```
+mutation{
+  deleteAggregate(input: { id: "QWdncmVnYXRlTm9kZTox"}) {
+    aggregate{
+        id
+        family
+        prefix
+        rir {
+          id
+          name
+        }
+        dateAdded
+        description 
+    }
+  }
+}
+```

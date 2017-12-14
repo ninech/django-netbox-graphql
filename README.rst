@@ -25,6 +25,7 @@ Available Models for CRUD
     * VLAN
     * VRF
     * RIR
+    * Aggregate
 
 Build package (optional)
 ------------------------
