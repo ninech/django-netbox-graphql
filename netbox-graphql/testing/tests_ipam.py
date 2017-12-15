@@ -1,7 +1,7 @@
 import pytest
 from graphene.test import Client
 from snapshottest import TestCase
-from .data import initialize_vlan_role, initialize_vlan_group, initialize_site, initialize_vlan, initialize_tenant, initialize_vrf, initialize_rir
+from .data import initialize_vlan_role, initialize_vlan_group, initialize_site, initialize_vlan, initialize_tenant, initialize_vrf, initialize_rir, initialize_aggregate
 from ..schema import schema
 from ..helper_methods import print_result
 
@@ -102,6 +102,28 @@ class FieldsTestCase(TestCase):
                 name
                 slug
                 isPrivate
+              }
+            }
+          }
+        }
+        '''))
+
+    def test_aggregate(self):
+        client = Client(schema)
+        self.assertMatchSnapshot(client.execute('''
+        {
+          aggregates {
+            edges {
+              node {
+                id
+                family
+                prefix
+                rir {
+                  id
+                  name
+                }
+                dateAdded
+                description
               }
             }
           }
@@ -542,6 +564,101 @@ class RIRTestCase(TestCase):
         }
         '''
         expected = {'deleteRir': {'rir': {'id': 'UklSTm9kZTpOb25l', 'name': 'rir1', 'slug': 'rir1', 'isPrivate': True}}}
+
+        result = schema.execute(query)
+        assert not result.errors
+        assert result.data == expected
+
+class AggregateTestCase(TestCase):
+    def test_creating_new_aggregate(self):
+        initialize_rir('11')
+        query = '''
+        mutation {
+          newAggregate(input: { family: 4, rir: "UklSTm9kZToxMQ==", prefix: "192.0.0.0/12", dateAdded: "2015-01-01", description: "desc" }) {
+            aggregate{
+                id
+                family
+                prefix
+                rir {
+                  id
+                  name
+                }
+                dateAdded
+                description
+            }
+          }
+        }
+        '''
+        expected = {'newAggregate': {'aggregate': {'id': 'QWdncmVnYXRlTm9kZTox', 'family': 'A_4', 'prefix': '192.0.0.0/12', 'rir': {'id': 'UklSTm9kZToxMQ==', 'name': 'rir11'}, 'dateAdded': '2015-01-01', 'description': 'desc'}}}
+
+        result = schema.execute(query)
+        assert not result.errors
+        assert result.data == expected
+
+    def test_correct_fetch_of_aggregate(self):
+        initialize_aggregate('14')
+        query = '''
+        {
+          aggregates(id: "QWdncmVnYXRlTm9kZToxNA==") {
+            edges {
+              node {
+                id
+                family
+                prefix
+                rir {
+                  id
+                  name
+                }
+                dateAdded
+               description
+              }
+            }
+          }
+        }
+        '''
+        expected = {'aggregates': {'edges': [{'node': {'id': 'QWdncmVnYXRlTm9kZToxNA==', 'family': 'A_4', 'prefix': '14.0.0.0/8', 'rir': {'id': 'UklSTm9kZToxNA==', 'name': 'rir14'}, 'dateAdded': '2017-12-12', 'description': 'desc'}}]}}
+
+        result = schema.execute(query)
+        assert not result.errors
+        assert result.data == expected
+
+    def test_update_role(self):
+        initialize_aggregate('13')
+        query = '''
+        mutation{
+          updateAggregate(input: { id: "QWdncmVnYXRlTm9kZToxMw==", dateAdded: "2017-01-01", description: "desc", prefix: "54.0.0.0/8"}) {
+            aggregate{
+                id
+                family
+                prefix
+                rir {
+                  id
+                  name
+                }
+                dateAdded
+                description
+            }
+          }
+        }
+        '''
+        expected = {'updateAggregate': {'aggregate': {'id': 'QWdncmVnYXRlTm9kZToxMw==', 'family': 'A_4', 'prefix': '54.0.0.0/8', 'rir': {'id': 'UklSTm9kZToxMw==', 'name': 'rir13'}, 'dateAdded': '2017-01-01', 'description': 'desc'}}}
+
+        result = schema.execute(query)
+        assert not result.errors
+        assert result.data == expected
+
+    def test_delete_aggregate(self):
+        initialize_aggregate('12')
+        query = '''
+        mutation{
+          deleteAggregate(input: { id: "UklSTm9kZToxMg=="}) {
+            aggregate{
+                id
+            }
+          }
+        }
+        '''
+        expected = {'deleteAggregate': {'aggregate': {'id': 'QWdncmVnYXRlTm9kZTpOb25l'}}}
 
         result = schema.execute(query)
         assert not result.errors
