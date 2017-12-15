@@ -1,7 +1,8 @@
 from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
 from dcim.models import Site, Interface, Region
 from tenancy.models import Tenant, TenantGroup
-from ipam.models import Role, VLANGroup, VLAN, VRF, RIR
+from ipam.models import Role, VLANGroup, VLAN, VRF, RIR, Aggregate
+from netaddr import IPNetwork
 
 # circuits
 def initialize_circuit_type():
@@ -200,3 +201,16 @@ def initialize_rir(id):
     )
     rir.save()
     return rir
+
+def initialize_aggregate(id):
+    rir = initialize_rir(id)
+
+    aggregate = Aggregate(
+        id = id,
+        prefix = IPNetwork(str(id) + '.0.0.0/8'),
+        rir = rir,
+        date_added = '2017-12-12',
+        description = 'desc'
+     )
+    aggregate.save()
+    return aggregate
