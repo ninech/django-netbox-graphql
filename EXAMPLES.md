@@ -1103,3 +1103,109 @@ mutation{
   }
 }
 ```
+
+### IPAddress
+Get all
+```
+{
+  ipAddress {
+    edges {
+      node {
+        id
+        family
+        address
+        vrf {
+          name
+        }
+        tenant {
+          name
+        }
+        interface {
+          name
+        }
+        natInside {
+          id
+        }
+        natOutside {
+          id
+        }
+        description
+        status        
+      }
+    }
+  }
+}
+```
+ 
+ Create 
+```
+mutation{
+  newIpAddress(input: { address: "173.16.0.0/12", vrf: "VlJGTm9kZToz", tenant: "VGVuYW50Tm9kZToy", interface: "SW50ZXJmYWNlTm9kZTox", natInside: "SVBBZGRyZXNzTm9kZTox", description: "desc", status: 1}) {
+    ipAddress{
+     	id
+        family
+        address
+        vrf {
+          name
+        }
+        tenant {
+          name
+        }
+        interface {
+          name
+        }
+        natInside {
+          id
+        }
+        natOutside {
+          id
+        }
+        description
+        status  
+    }
+  }
+}
+```
+ 
+ Update
+```
+mutation{
+  updateIpAddress(input: { id:"SVBBZGRyZXNzTm9kZTox", address: "177.12.0.0/24", vrf: "VlJGTm9kZToz", tenant: "VGVuYW50Tm9kZToy", interface: "SW50ZXJmYWNlTm9kZTox", description: "txt", status: 1}) {
+    ipAddress{
+     	id
+        family
+        address
+        vrf {
+          name
+        }
+        tenant {
+          name
+        }
+        interface {
+          name
+        }
+        natInside {
+          id
+        }
+        natOutside {
+          id
+        }
+        description
+        status  
+    }
+  }
+}
+```
+ 
+ Delete
+```
+mutation{
+  deleteIpAddress(input: { id:"SVBBZGRyZXNzTm9kZTox"}) {
+    ipAddress{
+        id
+        family
+        address
+    }
+  }
+}
+```

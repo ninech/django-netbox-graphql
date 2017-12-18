@@ -8,10 +8,10 @@ from graphene import ID, Boolean, Float, Int, List, String
 from graphql_relay.node.node import from_global_id
 from .custom_filter_fields import date_types, string_types, number_types
 from .helper_methods import not_none, set_and_save
-from ipam.models import IPAddress, VLANGroup, Role, VLAN, VRF, RIR, Aggregate
+from ipam.models import IPAddress, VLANGroup, Role, VLAN, VRF, RIR, Aggregate, IPAddress
 from tenancy.models import Tenant
 from ipam.fields import IPNetworkField, IPAddressField
-from dcim.models import Site
+from dcim.models import Site, Interface
 
 @convert_django_field.register(IPNetworkField)
 def iPNetworkFieldConvert(field, registry=None):
@@ -421,6 +421,95 @@ class DeleteAggregate(ClientIDMutation):
         temp.delete()
         return DeleteAggregate(aggregate=temp)
 
+# IPAddress
+class NewIPAddress(ClientIDMutation):
+    ip_address = Field(IPAddressNode)
+
+    class Input:
+        family = Int(default_value=None)
+        address = String(default_value=None)
+        vrf = String(default_value=None)
+        tenant = String(default_value=None)
+        status = Int(default_value=None)
+        interface = String(default_value=None)
+        nat_inside = String(default_value=None)
+        description = String(default_value=None)
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        temp = IPAddress()
+
+        vrf = input.get('vrf')
+        tenant = input.get('tenant')
+        interface = input.get('interface')
+        nat_inside = input.get('nat_inside')
+
+        if not_none(vrf):
+            temp.vrf = VRF.objects.get(pk=from_global_id(vrf)[1])
+
+        if not_none(tenant):
+            temp.tenant = Tenant.objects.get(pk=from_global_id(tenant)[1])
+
+        if not_none(interface):
+            temp.interface = Interface.objects.get(pk=from_global_id(interface)[1])
+
+        if not_none(nat_inside):
+            temp.nat_inside = IPAddress.objects.get(pk=from_global_id(nat_inside)[1])
+
+        fields = ['family', 'address', 'status', 'description']
+
+        return NewIPAddress(ip_address=set_and_save(fields, input, temp))
+
+class UpdateIPAddress(ClientIDMutation):
+    ip_address = Field(IPAddressNode)
+
+    class Input:
+        id = String()
+        family = Int(default_value=None)
+        address = String(default_value=None)
+        vrf = String(default_value=None)
+        tenant = String(default_value=None)
+        status = Int(default_value=None)
+        interface = String(default_value=None)
+        nat_inside = String(default_value=None)
+        description = String(default_value=None)
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        temp = IPAddress.objects.get(pk=from_global_id(input.get('id'))[1])
+
+        vrf = input.get('vrf')
+        tenant = input.get('tenant')
+        interface = input.get('interface')
+        nat_inside = input.get('nat_inside')
+
+        if not_none(vrf):
+            temp.vrf = VRF.objects.get(pk=from_global_id(vrf)[1])
+
+        if not_none(tenant):
+            temp.tenant = Tenant.objects.get(pk=from_global_id(tenant)[1])
+
+        if not_none(interface):
+            temp.interface = Interface.objects.get(pk=from_global_id(interface)[1])
+
+        if not_none(nat_inside):
+            temp.nat_inside = IPAddress.objects.get(pk=from_global_id(nat_inside)[1])
+
+        fields = ['family', 'address', 'status', 'description']
+
+        return UpdateIPAddress(ip_address=set_and_save(fields, input, temp))
+
+class DeleteIPAddress(ClientIDMutation):
+    ip_address = Field(IPAddressNode)
+    class Input:
+        id = String()
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        temp = IPAddress.objects.get(pk=from_global_id(input.get('id'))[1])
+        temp.delete()
+        return DeleteIPAddress(ip_address=temp)
+
 class IpamMutations(AbstractType):
     # Roles
     new_vlan_role = NewRole.Field()
@@ -446,3 +535,7 @@ class IpamMutations(AbstractType):
     new_aggregate = NewAggregate.Field()
     update_aggregate = UpdateAggregate.Field()
     delete_aggregate = DeleteAggregate.Field()
+    # IPAddress
+    new_ip_address = NewIPAddress.Field()
+    update_ip_address = UpdateIPAddress.Field()
+    delete_ip_address = DeleteIPAddress.Field()
