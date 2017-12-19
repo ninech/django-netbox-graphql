@@ -1,7 +1,7 @@
 import pytest
 from graphene.test import Client
 from snapshottest import TestCase
-from .data import initialize_vlan_role, initialize_vlan_group, initialize_site, initialize_vlan, initialize_tenant, initialize_vrf, initialize_rir, initialize_aggregate
+from .data import initialize_vlan_role, initialize_vlan_group, initialize_site, initialize_vlan, initialize_tenant, initialize_vrf, initialize_rir, initialize_aggregate, initialize_ip_address
 from ..schema import schema
 from ..helper_methods import print_result
 
@@ -124,6 +124,39 @@ class FieldsTestCase(TestCase):
                 }
                 dateAdded
                 description
+              }
+            }
+          }
+        }
+        '''))
+
+    def test_ip_address(self):
+        client = Client(schema)
+        self.assertMatchSnapshot(client.execute('''
+        {
+          ipAddress {
+            edges {
+              node {
+                id
+                family
+                address
+                vrf {
+                  name
+                }
+                tenant {
+                  name
+                }
+                interface {
+                  name
+                }
+                natInside {
+                  id
+                }
+                natOutside {
+                  id
+                }
+                description
+                status
               }
             }
           }
@@ -659,6 +692,100 @@ class AggregateTestCase(TestCase):
         }
         '''
         expected = {'deleteAggregate': {'aggregate': {'id': 'QWdncmVnYXRlTm9kZTpOb25l'}}}
+
+        result = schema.execute(query)
+        assert not result.errors
+        assert result.data == expected
+
+class IpAddressTestCase(TestCase):
+    def test_creating_new_ip_address(self):
+        initialize_ip_address('19')
+        query = '''
+         mutation{
+          newIpAddress(input: { address: "173.16.0.0/12", vrf: "VlJGTm9kZToxOQ==", status: 3}) {
+            ipAddress{
+                id
+                family
+                address
+                vrf {
+                  name
+                }
+                description
+                status
+            }
+          }
+        }
+        '''
+        expected = {'newIpAddress': {'ipAddress': {'id': 'SVBBZGRyZXNzTm9kZToz', 'family': 'A_4', 'address': '173.16.0.0/12', 'vrf': {'name': 'vrf19'}, 'description': '', 'status': 'A_3'}}}
+
+        result = schema.execute(query)
+        assert not result.errors
+        assert result.data == expected
+
+    def test_correct_fetch_of_ip_address(self):
+        initialize_ip_address('16')
+        query = '''
+            {
+              ipAddress(id: "SVBBZGRyZXNzTm9kZTox") {
+                edges {
+                  node {
+                    id
+                    family
+                    address
+                    vrf {
+                      name
+                    }
+
+                    description
+                    status
+                  }
+                }
+              }
+            }
+        '''
+        expected = {'ipAddress': {'edges': [{'node': {'id': 'SVBBZGRyZXNzTm9kZTox', 'family': 'A_4', 'address': '16.0.2.1/24', 'vrf': {'name': 'vrf16'}, 'description': 'desc', 'status': 'A_1'}}]}}
+
+        result = schema.execute(query)
+        assert not result.errors
+        assert result.data == expected
+
+    def test_update_ip_address(self):
+        initialize_ip_address('15')
+
+        query = '''
+            mutation{
+              updateIpAddress(input: { id:"SVBBZGRyZXNzTm9kZTo1", description: "txt", status: 2}) {
+                ipAddress{
+                    id
+                    family
+                    address
+                    vrf {
+                      name
+                    }
+                    description
+                    status
+                }
+              }
+            }
+        '''
+        expected = {'updateIpAddress': {'ipAddress': {'id': 'SVBBZGRyZXNzTm9kZTo1', 'family': 'A_4', 'address': '15.0.2.1/24', 'vrf': {'name': 'vrf15'}, 'description': 'txt', 'status': 'A_2'}}}
+
+        result = schema.execute(query)
+        assert not result.errors
+        assert result.data == expected
+
+    def test_delete_ip_address(self):
+        initialize_ip_address('17')
+        query = '''
+        mutation{
+          deleteIpAddress(input: { id:"SVBBZGRyZXNzTm9kZTox"}) {
+            ipAddress{
+                id
+            }
+          }
+        }
+        '''
+        expected = {'deleteIpAddress': {'ipAddress': {'id': 'SVBBZGRyZXNzTm9kZTpOb25l'}}}
 
         result = schema.execute(query)
         assert not result.errors
