@@ -8,7 +8,7 @@ from graphene import ID, Boolean, Float, Int, List, String
 from graphql_relay.node.node import from_global_id
 from .custom_filter_fields import date_types, string_types, number_types
 from .helper_methods import not_none, set_and_save
-from ipam.models import IPAddress, VLANGroup, Role, VLAN, VRF, RIR, Aggregate, IPAddress
+from ipam.models import IPAddress, VLANGroup, Role, VLAN, VRF, RIR, Aggregate, IPAddress, Prefix
 from tenancy.models import Tenant
 from ipam.fields import IPNetworkField, IPAddressField
 from dcim.models import Site, Interface
@@ -86,6 +86,14 @@ class AggregateNode(DjangoObjectType):
             'id': ['exact'],
         }
 
+class PrefixNode(DjangoObjectType):
+    class Meta:
+        model = Prefix
+        interfaces = (Node, )
+        filter_fields = {
+            'id': ['exact'],
+        }
+
 # Queries
 class IpamQuery(AbstractType):
     ip_address = DjangoFilterConnectionField(IPAddressNode)
@@ -95,6 +103,7 @@ class IpamQuery(AbstractType):
     vrfs = DjangoFilterConnectionField(VRFNode)
     rirs = DjangoFilterConnectionField(RIRNode)
     aggregates = DjangoFilterConnectionField(AggregateNode)
+    prefixes = DjangoFilterConnectionField(PrefixNode)
 
 # Mutations
 class NewRole(ClientIDMutation):
@@ -510,6 +519,107 @@ class DeleteIPAddress(ClientIDMutation):
         temp.delete()
         return DeleteIPAddress(ip_address=temp)
 
+# Prefix
+class NewPrefix(ClientIDMutation):
+    prefix = Field(PrefixNode)
+
+    class Input:
+        family = Int(default_value=None)
+        prefix = String(default_value=None)
+        site = String(default_value=None)
+        vrf = String(default_value=None)
+        tenant = String(default_value=None)
+        vlan = String(default_value=None)
+        status = Int(default_value=None)
+        role = String(default_value=None)
+        description = String(default_value=None)
+        is_pool = Boolean(default_value=None)
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        temp = Prefix()
+
+        site = input.get('site')
+        vrf = input.get('vrf')
+        tenant = input.get('tenant')
+        vlan = input.get('vlan')
+        role = input.get('role')
+
+        if not_none(vrf):
+            temp.vrf = VRF.objects.get(pk=from_global_id(vrf)[1])
+
+        if not_none(tenant):
+            temp.tenant = Tenant.objects.get(pk=from_global_id(tenant)[1])
+
+        if not_none(site):
+            temp.site = Site.objects.get(pk=from_global_id(site)[1])
+
+        if not_none(vlan):
+            temp.vlan = VLAN.objects.get(pk=from_global_id(vlan)[1])
+
+        if not_none(role):
+            temp.role = Role.objects.get(pk=from_global_id(role)[1])
+
+        fields = ['family', 'prefix', 'status', 'is_pool', 'description']
+
+        return NewPrefix(prefix=set_and_save(fields, input, temp))
+
+class UpdatePrefix(ClientIDMutation):
+    prefix = Field(PrefixNode)
+
+    class Input:
+        id = String()
+        family = Int(default_value=None)
+        prefix = String(default_value=None)
+        site = String(default_value=None)
+        vrf = String(default_value=None)
+        tenant = String(default_value=None)
+        vlan = String(default_value=None)
+        status = Int(default_value=None)
+        role = String(default_value=None)
+        is_pool = Boolean(default_value=None)
+        description = String(default_value=None)
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        temp = Prefix.objects.get(pk=from_global_id(input.get('id'))[1])
+
+        site = input.get('site')
+        vrf = input.get('vrf')
+        tenant = input.get('tenant')
+        vlan = input.get('vlan')
+        role = input.get('role')
+
+        if not_none(vrf):
+            temp.vrf = VRF.objects.get(pk=from_global_id(vrf)[1])
+
+        if not_none(tenant):
+            temp.tenant = Tenant.objects.get(pk=from_global_id(tenant)[1])
+
+        if not_none(site):
+            temp.site = Site.objects.get(pk=from_global_id(site)[1])
+
+        if not_none(vlan):
+            temp.vlan = VLAN.objects.get(pk=from_global_id(vlan)[1])
+
+        if not_none(role):
+            temp.role = Role.objects.get(pk=from_global_id(role)[1])
+
+        fields = ['family', 'prefix', 'status', 'is_pool', 'description']
+
+        return UpdatePrefix(prefix=set_and_save(fields, input, temp))
+
+class DeletePrefix(ClientIDMutation):
+    prefix = Field(PrefixNode)
+    class Input:
+        id = String()
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        temp = Prefix.objects.get(pk=from_global_id(input.get('id'))[1])
+        temp.delete()
+        return DeletePrefix(prefix=temp)
+
 class IpamMutations(AbstractType):
     # Roles
     new_vlan_role = NewRole.Field()
@@ -539,3 +649,8 @@ class IpamMutations(AbstractType):
     new_ip_address = NewIPAddress.Field()
     update_ip_address = UpdateIPAddress.Field()
     delete_ip_address = DeleteIPAddress.Field()
+    # Prefixes
+    new_prefix = NewPrefix.Field()
+    update_prefix = UpdatePrefix.Field()
+    delete_prefix = DeletePrefix.Field()
+

@@ -26,6 +26,7 @@ Available Models for CRUD
     * VRF
     * RIR
     * Aggregate
+    * Prefix
 
 Build package (optional)
 ------------------------

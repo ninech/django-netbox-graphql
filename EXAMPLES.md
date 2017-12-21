@@ -1209,3 +1209,130 @@ mutation{
   }
 }
 ```
+
+### Prefix
+Get all
+```
+{
+  prefixes {
+    edges {
+      node {
+        id
+        family
+        prefix
+        site {
+          id
+        }
+        vrf {
+          id
+        }
+        tenant {
+          id
+        }
+        vlan {
+          id
+        }
+        status
+        role {
+          id
+        }
+        isPool
+        description
+      }
+    }
+  }
+}
+```
+ 
+ Create 
+```
+mutation{
+  newPrefix(input: { prefix: "173.16.0.0/12", description: "desc", site: "U2l0ZU5vZGU6MQ==", vrf: "VlJGTm9kZToz", tenant: "VGVuYW50Tm9kZToy", status: 1, role: "Um9sZU5vZGU6NA==", isPool: false}) {
+    prefix{
+        id
+      	description
+        family
+        prefix
+        site {
+          id
+        }
+        vrf {
+          id
+        }
+        tenant {
+          id
+        }
+        vlan {
+          id
+        }
+        status
+        role {
+          id
+        }
+        isPool        
+    }
+  }
+}
+```
+ 
+ Update
+```
+mutation{
+  updatePrefix(input: { id: "UHJlZml4Tm9kZToxMQ==", prefix: "173.16.0.0/24", description: "txt", site: "U2l0ZU5vZGU6MQ==", vrf: "VlJGTm9kZToz", tenant: "VGVuYW50Tm9kZToy", status: 2, role: "Um9sZU5vZGU6NA==", isPool: true}) {
+    prefix{
+        id
+      	description
+        family
+        prefix
+        site {
+          id
+        }
+        vrf {
+          id
+        }
+        tenant {
+          id
+        }
+        vlan {
+          id
+        }
+        status
+        role {
+          id
+        }
+        isPool        
+    }
+  }
+}
+```
+ 
+ Delete
+```
+mutation{
+  deletePrefix(input: {id: "UHJlZml4Tm9kZToxMQ=="}) {
+    prefix{
+        id
+        description
+        family
+        prefix
+        site {
+          id
+        }
+        vrf {
+          id
+        }
+        tenant {
+          id
+        }
+        vlan {
+          id
+        }
+        status
+        role {
+          id
+        }
+        isPool        
+    }
+  }
+}
+```
