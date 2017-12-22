@@ -1,7 +1,7 @@
 from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
 from dcim.models import Site, Interface, Region
 from tenancy.models import Tenant, TenantGroup
-from ipam.models import Role, VLANGroup, VLAN, VRF, RIR, Aggregate, IPAddress
+from ipam.models import Role, VLANGroup, VLAN, VRF, RIR, Aggregate, IPAddress, Prefix
 from netaddr import IPNetwork
 
 # circuits
@@ -226,3 +226,19 @@ def initialize_ip_address(id):
     )
     ip_address.save()
     return ip_address
+
+def initialize_prefix(id):
+    vrf = initialize_vrf(id)
+    role = initialize_vlan_role(id)
+
+    prefix = Prefix(
+        id = id,
+        prefix = IPNetwork('122.0.3.0/24'),
+        status = 1,
+        is_pool = True,
+        description = 'desc',
+        role = role,
+        vrf = vrf,
+    )
+    prefix.save()
+    return prefix

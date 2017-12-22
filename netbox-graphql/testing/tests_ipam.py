@@ -1,7 +1,7 @@
 import pytest
 from graphene.test import Client
 from snapshottest import TestCase
-from .data import initialize_vlan_role, initialize_vlan_group, initialize_site, initialize_vlan, initialize_tenant, initialize_vrf, initialize_rir, initialize_aggregate, initialize_ip_address
+from .data import initialize_vlan_role, initialize_vlan_group, initialize_site, initialize_vlan, initialize_tenant, initialize_vrf, initialize_rir, initialize_aggregate, initialize_ip_address, initialize_prefix
 from ..schema import schema
 from ..helper_methods import print_result
 
@@ -157,6 +157,40 @@ class FieldsTestCase(TestCase):
                 }
                 description
                 status
+              }
+            }
+          }
+        }
+        '''))
+
+    def test_prefix(self):
+        client = Client(schema)
+        self.assertMatchSnapshot(client.execute('''
+        {
+          prefixes {
+            edges {
+              node {
+                id
+                family
+                prefix
+                site {
+                  id
+                }
+                vrf {
+                  id
+                }
+                tenant {
+                  id
+                }
+                vlan {
+                  id
+                }
+                status
+                role {
+                  id
+                }
+                isPool
+                description
               }
             }
           }
@@ -786,6 +820,113 @@ class IpAddressTestCase(TestCase):
         }
         '''
         expected = {'deleteIpAddress': {'ipAddress': {'id': 'SVBBZGRyZXNzTm9kZTpOb25l'}}}
+
+        result = schema.execute(query)
+        assert not result.errors
+        assert result.data == expected
+
+class PrefixTestCase(TestCase):
+    def test_creating_new_prefix(self):
+        initialize_vrf('159')
+        initialize_vlan_role('159')
+
+        query = '''
+        mutation{
+          newPrefix(input: { prefix: "173.16.0.0/12", description: "desc", vrf: "VlJGTm9kZToxNTk=", role: "Um9sZU5vZGU6MTU5", status: 1, isPool: false}) {
+            prefix{
+                id
+                description
+                family
+                prefix
+                vrf {
+                  id
+                }
+                status
+                role {
+                  id
+                }
+                isPool
+            }
+          }
+        }
+        '''
+        expected = {'newPrefix': {'prefix': {'id': 'UHJlZml4Tm9kZTox', 'description': 'desc', 'family': 'A_4', 'prefix': '173.16.0.0/12', 'vrf': {'id': 'VlJGTm9kZToxNTk='}, 'status': 'A_1', 'role': {'id': 'Um9sZU5vZGU6MTU5'}, 'isPool': False}}}
+
+        result = schema.execute(query)
+        assert not result.errors
+        assert result.data == expected
+
+    def test_correct_fetch_of_prefix(self):
+        initialize_prefix('156')
+        query = '''
+        {
+          prefixes(id: "UHJlZml4Tm9kZToxNTY=") {
+            edges {
+              node {
+                id
+                family
+                prefix
+                vrf {
+                  id
+                }
+                status
+                role {
+                  id
+                }
+                isPool
+                description
+              }
+            }
+          }
+        }
+        '''
+        expected = {'prefixes': {'edges': [{'node': {'id': 'UHJlZml4Tm9kZToxNTY=', 'family': 'A_4', 'prefix': '122.0.3.0/24', 'vrf': {'id': 'VlJGTm9kZToxNTY='}, 'status': 'A_1', 'role': {'id': 'Um9sZU5vZGU6MTU2'}, 'isPool': True, 'description': 'desc'}}]}}
+
+        result = schema.execute(query)
+        assert not result.errors
+        assert result.data == expected
+
+    def test_update_prefix(self):
+        initialize_prefix('155')
+
+        query = '''
+        mutation{
+          updatePrefix(input: { id: "UHJlZml4Tm9kZToxNTU=", prefix: "173.16.0.0/24", description: "txt", status: 2, isPool: true}) {
+            prefix{
+            id
+            description
+            family
+            prefix
+            vrf {
+              id
+            }
+            status
+            role {
+              id
+            }
+            isPool
+            }
+          }
+        }
+        '''
+
+        expected = {'updatePrefix': {'prefix': {'id': 'UHJlZml4Tm9kZToxNTU=', 'description': 'txt', 'family': 'A_4', 'prefix': '173.16.0.0/24', 'vrf': {'id': 'VlJGTm9kZToxNTU='}, 'status': 'A_2', 'role': {'id': 'Um9sZU5vZGU6MTU1'}, 'isPool': True}}}
+        result = schema.execute(query)
+        assert not result.errors
+        assert result.data == expected
+
+    def test_delete_prefix(self):
+        initialize_prefix('157')
+        query = '''
+        mutation{
+          deletePrefix(input: {id: "UHJlZml4Tm9kZToxNTc="}) {
+            prefix{
+                id
+            }
+          }
+        }
+        '''
+        expected = {'deletePrefix': {'prefix': {'id': 'UHJlZml4Tm9kZTpOb25l'}}}
 
         result = schema.execute(query)
         assert not result.errors
