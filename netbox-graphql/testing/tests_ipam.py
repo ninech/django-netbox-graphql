@@ -736,21 +736,18 @@ class IpAddressTestCase(TestCase):
         initialize_ip_address('19')
         query = '''
          mutation{
-          newIpAddress(input: { address: "173.16.0.0/12", vrf: "VlJGTm9kZToxOQ==", status: 3}) {
+          newIpAddress(input: { address: "173.16.0.0/12", status: 3}) {
             ipAddress{
                 id
                 family
                 address
-                vrf {
-                  name
-                }
                 description
                 status
             }
           }
         }
         '''
-        expected = {'newIpAddress': {'ipAddress': {'id': 'SVBBZGRyZXNzTm9kZToz', 'family': 'A_4', 'address': '173.16.0.0/12', 'vrf': {'name': 'vrf19'}, 'description': '', 'status': 'A_3'}}}
+        expected = {'newIpAddress': {'ipAddress': {'id': 'SVBBZGRyZXNzTm9kZToz', 'family': 'A_4', 'address': '173.16.0.0/12', 'description': '', 'status': 'A_3'}}}
 
         result = schema.execute(query)
         assert not result.errors
@@ -766,10 +763,6 @@ class IpAddressTestCase(TestCase):
                     id
                     family
                     address
-                    vrf {
-                      name
-                    }
-
                     description
                     status
                   }
@@ -777,32 +770,29 @@ class IpAddressTestCase(TestCase):
               }
             }
         '''
-        expected = {'ipAddress': {'edges': [{'node': {'id': 'SVBBZGRyZXNzTm9kZTox', 'family': 'A_4', 'address': '16.0.2.1/24', 'vrf': {'name': 'vrf16'}, 'description': 'desc', 'status': 'A_1'}}]}}
+        expected = {'ipAddress': {'edges': [{'node': {'id': 'SVBBZGRyZXNzTm9kZTox', 'family': 'A_4', 'address': '16.0.2.1/24', 'description': 'desc', 'status': 'A_1'}}]}}
 
         result = schema.execute(query)
         assert not result.errors
         assert result.data == expected
 
     def test_update_ip_address(self):
-        initialize_ip_address('15')
+        initialize_ip_address('151')
 
         query = '''
             mutation{
-              updateIpAddress(input: { id:"SVBBZGRyZXNzTm9kZTo1", description: "txt", status: 2}) {
+              updateIpAddress(input: { id:"SVBBZGRyZXNzTm9kZToz", description: "txt", status: 2}) {
                 ipAddress{
                     id
                     family
                     address
-                    vrf {
-                      name
-                    }
                     description
                     status
                 }
               }
             }
         '''
-        expected = {'updateIpAddress': {'ipAddress': {'id': 'SVBBZGRyZXNzTm9kZTo1', 'family': 'A_4', 'address': '15.0.2.1/24', 'vrf': {'name': 'vrf15'}, 'description': 'txt', 'status': 'A_2'}}}
+        expected = {'updateIpAddress': {'ipAddress': {'id': 'SVBBZGRyZXNzTm9kZToz', 'family': 'A_4', 'address': '173.16.0.0/12', 'description': 'txt', 'status': 'A_2'}}}
 
         result = schema.execute(query)
         assert not result.errors

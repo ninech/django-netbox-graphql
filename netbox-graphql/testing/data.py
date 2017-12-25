@@ -216,12 +216,10 @@ def initialize_aggregate(id):
     return aggregate
 
 def initialize_ip_address(id):
-    vrf = initialize_vrf(id)
 
     ip_address = IPAddress(
     address = IPNetwork(str(id) + '.0.2.1/24'),
     status = 1,
-    vrf = vrf,
     description = 'desc'
     )
     ip_address.save()
