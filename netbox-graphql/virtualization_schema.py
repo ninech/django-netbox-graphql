@@ -23,9 +23,20 @@ class ClusterTypeNode(DjangoObjectType):
             'slug': ['exact'],
         }
 
+class ClusterGroupNode(DjangoObjectType):
+    class Meta:
+        model = ClusterGroup
+        interfaces = (Node, )
+        filter_fields = {
+            'id': ['exact'],
+            'name': string_types,
+            'slug': ['exact'],
+        }
+
 # Queries
 class VirtualizationQuery(AbstractType):
     cluster_types = DjangoFilterConnectionField(ClusterTypeNode)
+    cluster_groups = DjangoFilterConnectionField(ClusterGroupNode)
 
 # Mutations
 class NewClusterType(ClientIDMutation):
@@ -66,9 +77,51 @@ class DeleteClusterType(ClientIDMutation):
         temp.delete()
         return DeleteClusterType(cluster_type=temp)
 
+# Cluster Group
+class NewClusterGroup(ClientIDMutation):
+    cluster_group = Field(ClusterGroupNode)
+    class Input:
+        name = String()
+        slug = String()
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        temp = ClusterGroup()
+
+        fields = [ 'name', 'slug' ]
+        return NewClusterGroup(cluster_group=set_and_save(fields, input, temp))
+
+class UpdateClusterGroup(ClientIDMutation):
+    cluster_group = Field(ClusterGroupNode)
+    class Input:
+        id = String()
+        name = String()
+        slug = String()
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        temp = ClusterGroup.objects.get(pk=from_global_id(input.get('id'))[1])
+
+        fields = [ 'name', 'slug' ]
+        return UpdateClusterGroup(cluster_group=set_and_save(fields, input, temp))
+
+class DeleteClusterGroup(ClientIDMutation):
+    cluster_group = Field(ClusterGroupNode)
+    class Input:
+        id = String()
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        temp = ClusterGroup.objects.get(pk=from_global_id(input.get('id'))[1])
+        temp.delete()
+        return DeleteClusterGroup(cluster_group=temp)
 
 class VirtualizationMutations(AbstractType):
     # Cluster Type
     new_cluster_type = NewClusterType.Field()
     update_cluster_type = UpdateClusterType.Field()
     delete_cluster_type = DeleteClusterType.Field()
+    # Cluster Group
+    new_cluster_group = NewClusterGroup.Field()
+    update_cluster_group = UpdateClusterGroup.Field()
+    delete_cluster_group = DeleteClusterGroup.Field()
