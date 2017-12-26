@@ -1336,3 +1336,61 @@ mutation{
   }
 }
 ```
+
+## Virtualization
+
+### ClusterType
+
+Get all
+```
+{
+  clusterTypes {
+    edges {
+      node {
+        id
+        name
+        slug
+      }
+    }
+  }
+}
+```
+
+Create 
+```
+mutation{
+  newClusterType(input: { name: "clusterType1", slug: "clustertype1"}) {
+    clusterType{
+      id
+      name
+      slug
+    }
+  }
+}
+```
+
+Update
+```
+mutation{
+  updateClusterType(input: { id: "Q2x1c3RlclR5cGVOb2RlOjI=", name: "clusterTypeA", slug: "clustertypeA"}) {
+    clusterType{
+      id
+      name
+      slug
+    }
+  }
+}
+```
+
+Delete
+```
+mutation{
+  deleteClusterType(input: { id: "Q2x1c3RlclR5cGVOb2RlOjI="}) {
+    clusterType{
+      id
+      name
+      slug
+    }
+  }
+}
+```
