@@ -2,7 +2,7 @@ from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
 from dcim.models import Site, Interface, Region
 from tenancy.models import Tenant, TenantGroup
 from ipam.models import Role, VLANGroup, VLAN, VRF, RIR, Aggregate, IPAddress, Prefix
-from virtualization.models import ClusterType
+from virtualization.models import ClusterType, ClusterGroup
 from netaddr import IPNetwork
 
 # circuits
@@ -251,3 +251,12 @@ def initialize_cluster_type(id):
     )
     cluster_type.save()
     return  cluster_type
+
+def initialize_cluster_group(id):
+    cluster_group = ClusterGroup(
+        id = id,
+        name = 'Group '+id,
+        slug = 'group'+id
+    )
+    cluster_group.save()
+    return  cluster_group
