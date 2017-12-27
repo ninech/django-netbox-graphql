@@ -1,7 +1,7 @@
 import pytest
 from graphene.test import Client
 from snapshottest import TestCase
-from .data import initialize_cluster_type, initialize_cluster_group
+from .data import initialize_cluster_type, initialize_cluster_group, initialize_cluster
 from ..schema import schema
 from virtualization.models import ClusterType
 from ..helper_methods import print_result
@@ -86,25 +86,6 @@ class ClusterTypeTestCase(TestCase):
         assert not result.errors
         assert result.data == expected
 
-def print_cluster_group(id):
-    initialize_cluster_group(id)
-    query = '''
-        {
-          clusterGroups {
-            edges {
-              node {
-                id
-                name
-                slug
-              }
-            }
-          }
-        }
-        '''
-
-    result = schema.execute(query)
-    print_result(result)
-
 class ClusterGroupTestCase(TestCase):
     def test_creating_new_cluster_group(self):
         query = '''
@@ -178,6 +159,93 @@ class ClusterGroupTestCase(TestCase):
         }
         '''
         expected = {'deleteClusterGroup': {'clusterGroup': {'id': 'Q2x1c3Rlckdyb3VwTm9kZTpOb25l', 'name': 'Group 4', 'slug': 'group4'}}}
+
+        result = schema.execute(query)
+        assert not result.errors
+        assert result.data == expected
+
+class ClusterTestCase(TestCase):
+    def test_creating_new_cluster(self):
+        initialize_cluster_type('11')
+        query = '''
+        mutation{
+          newCluster(input: { name: "clusterA", type: "Q2x1c3RlclR5cGVOb2RlOjEx"}) {
+            cluster{
+              id
+              name
+              type {
+                id
+              }
+            }
+          }
+        }
+        '''
+        expected = {'newCluster': {'cluster': {'id': 'Q2x1c3Rlck5vZGU6MQ==', 'name': 'clusterA', 'type': {'id': 'Q2x1c3RlclR5cGVOb2RlOjEx'}}}}
+
+        result = schema.execute(query)
+        assert not result.errors
+        assert result.data == expected
+
+    def test_correct_fetch_of_cluster(self):
+        initialize_cluster('12')
+        query = '''
+        {
+          clusters(id: "Q2x1c3Rlck5vZGU6MTI=") {
+            edges {
+              node {
+                id
+                name
+                type {
+                  id
+                }
+              }
+            }
+          }
+        }
+        '''
+        expected = {"clusters": {"edges": [{"node": {"id": "Q2x1c3Rlck5vZGU6MTI=", "name": "Cluster12", "type": {"id": "Q2x1c3RlclR5cGVOb2RlOjEy"}}}]}}
+
+        result = schema.execute(query)
+        assert not result.errors
+        assert result.data == expected
+
+    def test_update_cluster_group(self):
+        initialize_cluster('13')
+        query = '''
+        mutation{
+          updateCluster(input: { id:"Q2x1c3Rlck5vZGU6MTM=", name: "clusterB", type: "Q2x1c3RlclR5cGVOb2RlOjEz"}) {
+            cluster{
+              id
+              name
+              type {
+                id
+              }
+            }
+          }
+        }
+        '''
+        expected = {'updateCluster': {'cluster': {'id': 'Q2x1c3Rlck5vZGU6MTM=', 'name': 'clusterB', 'type': {'id': 'Q2x1c3RlclR5cGVOb2RlOjEz'}}}}
+
+        result = schema.execute(query)
+        assert not result.errors
+        assert result.data == expected
+
+    def test_delete_cluster(self):
+        initialize_cluster('14')
+        query = '''
+        mutation{
+          deleteCluster(input: { id:"Q2x1c3Rlck5vZGU6MTQ="}) {
+            cluster{
+              id
+              name
+              type {
+                id
+              }
+            }
+          }
+        }
+        '''
+        expected = {'deleteCluster': {'cluster': {'id': 'Q2x1c3Rlck5vZGU6Tm9uZQ==', 'name': 'Cluster14', 'type': {'id': 'Q2x1c3RlclR5cGVOb2RlOjE0'}}}}
 
         result = schema.execute(query)
         assert not result.errors
