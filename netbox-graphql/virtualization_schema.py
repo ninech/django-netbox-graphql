@@ -11,7 +11,8 @@ from .custom_filter_fields import date_types, string_types, number_types
 from .helper_methods import not_none, set_and_save
 from virtualization.models import ClusterType, ClusterGroup, Cluster, VirtualMachine
 from tenancy.models import Tenant
-from dcim.models import Site, Interface
+from dcim.models import Site, Interface, Platform, DeviceRole
+from ipam.models import IPAddress
 
 # Nodes
 class ClusterTypeNode(DjangoObjectType):
@@ -43,11 +44,21 @@ class ClusterNode(DjangoObjectType):
             'name': string_types,
         }
 
+class VirtualMachineNode(DjangoObjectType):
+    class Meta:
+        model = VirtualMachine
+        interfaces = (Node, )
+        filter_fields = {
+            'id': ['exact'],
+            'name': string_types,
+        }
+
 # Queries
 class VirtualizationQuery(AbstractType):
     cluster_types = DjangoFilterConnectionField(ClusterTypeNode)
     cluster_groups = DjangoFilterConnectionField(ClusterGroupNode)
     clusters = DjangoFilterConnectionField(ClusterNode)
+    virtual_machines = DjangoFilterConnectionField(VirtualMachineNode)
 
 # Mutations
 class NewClusterType(ClientIDMutation):
@@ -200,6 +211,117 @@ class DeleteCluster(ClientIDMutation):
         temp.delete()
         return DeleteCluster(cluster=temp)
 
+### Virtual machine
+
+class NewVirtualMachine(ClientIDMutation):
+    virtual_machine = Field(VirtualMachineNode)
+    class Input:
+        cluster = String(default_value=None)
+        tenant = String(default_value=None)
+        platform = String(default_value=None)
+        name = String(default_value=None)
+        status = Int(default_value=None)
+        role = String(default_value=None)
+        primary_ip4 = String(default_value=None)
+        primary_ip6 = String(default_value=None)
+        vcpus = Int(default_value=None)
+        memory = Int(default_value=None)
+        disk = Int(default_value=None)
+        comments = String(default_value=None)
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        cluster = input.get('cluster')
+        tenant = input.get('tenant')
+        platform = input.get('platform')
+        role = input.get('role')
+        primary_ip4 = input.get('primary_ip4')
+        primary_ip6 = input.get('primary_ip6')
+
+        temp = VirtualMachine()
+
+        if not_none(cluster):
+            temp.cluster = Cluster.objects.get(pk=from_global_id(cluster)[1])
+
+        if not_none(tenant):
+            temp.tenant = Tenant.objects.get(pk=from_global_id(tenant)[1])
+
+        if not_none(platform):
+            temp.platform = Platform.objects.get(pk=from_global_id(platform)[1])
+
+        if not_none(role):
+            temp.role = DeviceRole.objects.get(pk=from_global_id(role)[1])
+
+        if not_none(primary_ip4):
+            temp.primary_ip4 = IPAddress.objects.get(pk=from_global_id(primary_ip4)[1])
+
+        if not_none(primary_ip6):
+            temp.primary_ip6 = IPAddress.objects.get(pk=from_global_id(primary_ip6)[1])
+
+        fields = ['name', 'status', 'vcpus', 'memory', 'disk', 'comments']
+        return NewVirtualMachine(virtual_machine=set_and_save(fields, input, temp))
+
+class UpdateVirtualMachine(ClientIDMutation):
+    virtual_machine = Field(VirtualMachineNode)
+    class Input:
+        id = String()
+        cluster = String(default_value=None)
+        tenant = String(default_value=None)
+        platform = String(default_value=None)
+        name = String(default_value=None)
+        status = Int(default_value=None)
+        role = String(default_value=None)
+        primary_ip4 = String(default_value=None)
+        primary_ip6 = String(default_value=None)
+        vcpus = Int(default_value=None)
+        memory = Int(default_value=None)
+        disk = Int(default_value=None)
+        comments = String(default_value=None)
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        temp = VirtualMachine.objects.get(pk=from_global_id(input.get('id'))[1])
+
+        cluster = input.get('cluster')
+        tenant = input.get('tenant')
+        platform = input.get('platform')
+        role = input.get('role')
+        primary_ip4 = input.get('primary_ip4')
+        primary_ip6 = input.get('primary_ip6')
+
+        if not_none(cluster):
+            temp.cluster = Cluster.objects.get(pk=from_global_id(cluster)[1])
+
+        if not_none(tenant):
+            temp.tenant = Tenant.objects.get(pk=from_global_id(tenant)[1])
+
+        if not_none(platform):
+            temp.platform = Platform.objects.get(pk=from_global_id(platform)[1])
+
+        if not_none(role):
+            temp.role = DeviceRole.objects.get(pk=from_global_id(role)[1])
+
+        if not_none(primary_ip4):
+            temp.primary_ip4 = IPAddress.objects.get(pk=from_global_id(primary_ip4)[1])
+
+        if not_none(primary_ip6):
+            temp.primary_ip6 = IPAddress.objects.get(pk=from_global_id(primary_ip6)[1])
+
+        fields = ['name', 'status', 'vcpus', 'memory', 'disk', 'comments']
+
+        return UpdateVirtualMachine(virtual_machine=set_and_save(fields, input, temp))
+
+class DeleteVirtualMachine(ClientIDMutation):
+    virtual_machine = Field(VirtualMachineNode)
+    class Input:
+        id = String()
+
+    @classmethod
+    def mutate_and_get_payload(cls, input, context, info):
+        temp = VirtualMachine.objects.get(pk=from_global_id(input.get('id'))[1])
+        temp.delete()
+        return DeleteVirtualMachine(virtual_machine=temp)
+
 class VirtualizationMutations(AbstractType):
     # Cluster Type
     new_cluster_type = NewClusterType.Field()
@@ -213,3 +335,7 @@ class VirtualizationMutations(AbstractType):
     new_cluster = NewCluster.Field()
     update_cluster = UpdateCluster.Field()
     delete_cluster = DeleteCluster.Field()
+    # Virtual Machine
+    new_virtual_machine = NewVirtualMachine.Field()
+    update_virtual_machine = UpdateVirtualMachine.Field()
+    delete_virtual_machine = DeleteVirtualMachine.Field()
