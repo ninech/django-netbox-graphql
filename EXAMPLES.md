@@ -1344,6 +1344,62 @@ mutation{
 Get all
 ```
 {
+  clusterGroups {
+    edges {
+      node {
+        id
+        name
+        slug
+      }
+    }
+  }
+}
+```
+
+Create 
+```
+mutation{
+  newClusterGroup(input: { name: "clusterGroup1", slug: "clusterGroup1"}) {
+    clusterGroup{
+      id
+      name
+      slug
+    }
+  }
+}
+```
+
+Update
+```
+mutation{
+  updateClusterGroup(input: { id: "Q2x1c3Rlckdyb3VwTm9kZTox", name: "clusterGroupA", slug: "clusterGroupA"}) {
+    clusterGroup{
+      id
+      name
+      slug
+    }
+  }
+}
+```
+
+Delete
+```
+mutation{
+  deleteClusterGroup(input: { id: "Q2x1c3Rlckdyb3VwTm9kZTox"}) {
+    clusterGroup{
+      id
+      name
+      slug
+    }
+  }
+}
+```
+
+### ClusterGroup
+
+Get all
+```
+{
   clusterTypes {
     edges {
       node {
@@ -1390,6 +1446,240 @@ mutation{
       id
       name
       slug
+    }
+  }
+}
+```
+
+
+### Cluster
+
+Get all
+```
+{
+  clusters {
+    edges {
+      node {
+        id
+        name
+        type {
+          id
+        }
+        group {
+          id
+        }
+        site {
+          id
+        }
+      }
+    }
+  }
+}
+```
+
+Create 
+```
+mutation{
+  newCluster(input: { name: "clusterA", type: "Q2x1c3Rlck5vZGU6MQ=="}) {
+    cluster{
+      id
+      name
+      type {
+        id
+      }
+      group {
+        id
+      }
+      site {
+        id
+      }
+    }
+  }
+}
+```
+
+Update
+```
+mutation{
+  updateCluster(input: { id:"Q2x1c3Rlck5vZGU6Mg==", name: "clusterB", type: "Q2x1c3Rlck5vZGU6MQ=="}) {
+    cluster{
+      id
+      name
+      type {
+        id
+      }
+      group {
+        id
+      }
+      site {
+        id
+      }
+    }
+  }
+}
+```
+
+Delete
+```
+mutation{
+  deleteCluster(input: { id:"Q2x1c3Rlck5vZGU6Mg=="}) {
+    cluster{
+      id
+      name
+      type {
+        id
+      }
+      group {
+        id
+      }
+      site {
+        id
+      }
+    }
+  }
+}
+```
+
+### Virtual Machine
+
+Get all
+```
+{
+  virtualMachines {
+    edges {
+      node {
+        id
+        cluster {
+          id
+        }
+        tenant {
+          id
+        }
+        platform {
+          id
+        }
+        name
+        status
+        role {
+          id
+        }
+        primaryIp4 {
+          id
+        }
+        primaryIp6 {
+          id
+        }
+        vcpus
+        memory
+        disk
+        comments
+        }
+      }
+    }
+}
+```
+
+Create 
+```
+mutation{
+  newVirtualMachine(input: { cluster:"Q2x1c3Rlck5vZGU6MQ==", name: "virtual machine", status: 1, primaryIp4: "SVBBZGRyZXNzTm9kZTox", primaryIp6:"SVBBZGRyZXNzTm9kZToy", vcpus: 12, memory:126, disk: 256, comments: "test" }) {
+    virtualMachine{
+        id
+        cluster {
+          id
+        }
+        tenant {
+          id
+        }
+        platform {
+          id
+        }
+        name
+        status
+        role {
+          id
+        }
+        primaryIp4 {
+          id
+        }
+        primaryIp6 {
+          id
+        }
+        vcpus
+        memory
+        disk
+        comments
+    }
+  }
+}
+
+```
+
+Update
+```
+mutation{
+  updateVirtualMachine(input: { id: "VmlydHVhbE1hY2hpbmVOb2RlOjI=", cluster:"Q2x1c3Rlck5vZGU6MQ==", name: "virtual machine", status: 1, primaryIp4: "SVBBZGRyZXNzTm9kZTox", vcpus: 12, memory:256, disk: 512, comments: "test" }) {
+    virtualMachine{
+				id
+        cluster {
+          id
+        }
+        tenant {
+          id
+        }
+        platform {
+          id
+        }
+        name
+        status
+        role {
+          id
+        }
+        primaryIp4 {
+          id
+        }
+        primaryIp6 {
+          id
+        }
+        vcpus
+        memory
+        disk
+        comments
+    }
+  }
+}
+```
+
+Delete
+```
+mutation{
+  deleteVirtualMachine(input: { id: "VmlydHVhbE1hY2hpbmVOb2RlOjI=" }) {
+    virtualMachine{
+         id
+        cluster {
+          id
+        }
+        tenant {
+          id
+        }
+        platform {
+          id
+        }
+        name
+        status
+        role {
+          id
+        }
+        primaryIp4 {
+          id
+        }
+        primaryIp6 {
+          id
+        }
+        vcpus
+        memory
+        disk
+        comments
     }
   }
 }
