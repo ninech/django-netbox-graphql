@@ -115,7 +115,6 @@ class FieldsTestCase(TestCase):
           aggregates {
             edges {
               node {
-                id
                 family
                 prefix
                 rir {
