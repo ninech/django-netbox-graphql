@@ -29,6 +29,9 @@ Available Models for CRUD
     * Prefix
 * VIRTUALIZATION
     * ClusterType
+    * ClusterGroup
+    * Cluster
+    * VirtualMachine
 
 
 Build package (optional)
