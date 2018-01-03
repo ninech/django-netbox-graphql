@@ -1,6 +1,8 @@
 from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
 from dcim.models import Site, Interface, Region
 from tenancy.models import Tenant, TenantGroup
+from ipam.models import Role, VLANGroup, VLAN, VRF, RIR, Aggregate, IPAddress, Prefix
+from netaddr import IPNetwork
 
 # circuits
 def initialize_circuit_type():
@@ -136,3 +138,105 @@ def initialize_region(id):
     )
     region.save()
     return region
+
+# ipam
+
+def initialize_vlan_role(id):
+    vlan_role = Role(
+        id = id,
+        name = 'VlanRole' + id,
+        slug = 'vlanrole-' + id,
+        weight = 1000
+    )
+    vlan_role.save()
+    return vlan_role
+
+def initialize_vlan_group(id):
+    site = initialize_site(id)
+    vlan_group = VLANGroup(
+        id = id,
+        name = 'VlanGroup' + id,
+        slug = 'vlangroup-' + id,
+        site = site
+    )
+    vlan_group.save()
+    return vlan_group
+
+def initialize_vlan(id):
+    tenant = initialize_tenant(id)
+    role = initialize_vlan_role(id)
+
+    vlan = VLAN(
+        id = id,
+        vid = 2,
+        name = 'vlan' + id,
+        status = 1,
+        description = 'desc',
+        tenant = tenant,
+        role = role,
+    )
+    vlan.save()
+    return vlan
+
+def initialize_vrf(id):
+    tenant = initialize_tenant(id)
+
+    vrf = VRF(
+        id = id,
+        name = 'vrf' + id,
+        rd = 'rd' + id,
+        tenant = tenant,
+        enforce_unique = True,
+        description = 'description'
+    )
+    vrf.save()
+    return vrf
+
+def initialize_rir(id):
+    rir = RIR(
+        id = id,
+        name = 'rir' + id,
+        slug = 'rir' + id,
+        is_private = True
+    )
+    rir.save()
+    return rir
+
+def initialize_aggregate(id):
+    rir = initialize_rir(id)
+
+    aggregate = Aggregate(
+        id = id,
+        prefix = IPNetwork(str(id) + '.0.0.0/8'),
+        rir = rir,
+        date_added = '2017-12-12',
+        description = 'desc'
+     )
+    aggregate.save()
+    return aggregate
+
+def initialize_ip_address(id):
+
+    ip_address = IPAddress(
+    address = IPNetwork(str(id) + '.0.2.1/24'),
+    status = 1,
+    description = 'desc'
+    )
+    ip_address.save()
+    return ip_address
+
+def initialize_prefix(id):
+    vrf = initialize_vrf(id)
+    role = initialize_vlan_role(id)
+
+    prefix = Prefix(
+        id = id,
+        prefix = IPNetwork('122.0.3.0/24'),
+        status = 1,
+        is_pool = True,
+        description = 'desc',
+        role = role,
+        vrf = vrf,
+    )
+    prefix.save()
+    return prefix

@@ -1,6 +1,6 @@
 FROM ninech/netbox
 
-RUN ["pip", "install", "graphene-django>=1.0", "snapshottest", "pytest"]
+RUN ["pip", "install", "graphene-django==1.3", "graphene==1.4", "graphql-core==1.1", "snapshottest", "pytest"]
 
 COPY docker /tmp/
 

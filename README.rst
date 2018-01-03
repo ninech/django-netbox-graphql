@@ -13,6 +13,20 @@ Available Models for CRUD
     * Circuit
     * CircuitType
     * CircuitTermination
+* DCIM
+    * Region
+    * Site
+* TENANCY
+    * TenantGroup
+    * Tenant
+* IPAM
+    * Role
+    * VlanGroup
+    * VLAN
+    * VRF
+    * RIR
+    * Aggregate
+    * Prefix
 
 Build package (optional)
 ------------------------
