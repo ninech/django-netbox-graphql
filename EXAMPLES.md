@@ -674,3 +674,665 @@ mutation{
   }
 }
 ```
+
+# IPAM
+
+### Vlan Role
+
+Get all
+```
+{
+  vlanRoles {
+    edges {
+      node {
+        id
+        slug
+        name
+        weight        
+      }
+    }
+  }
+}
+```
+
+Create 
+```
+mutation{
+  newVlanRole(input: { name: "VlanRole 1", slug: "vlanrole-1", weight: 1001}) {
+    vlanRole{
+      id
+      name
+      slug
+      weight
+    }
+  }
+}
+```
+
+Update
+```
+mutation{
+  updateVlanRole(input: { id: "Um9sZU5vZGU6Ng==", name: "VlanRole A", slug: "vlanrole-a", weight: 1002}) {
+    vlanRole{
+      id
+      name
+      slug
+      weight
+    }
+  }
+}
+```
+
+Delete
+```
+mutation{
+  deleteVlanRole(input: { id: "Um9sZU5vZGU6Ng==" }) {
+    vlanRole{
+      id
+      name
+      slug
+      weight
+    }
+  }
+}
+```
+ 
+ ### VLAN Group
+ 
+ Get all
+```
+{
+  vlanGroups {
+    edges {
+      node {
+        id
+        name
+        slug
+        site {
+          name
+        }
+      }
+    }
+  }
+}
+```
+ 
+ Create 
+```
+mutation{
+  newVlanGroup(input: { name: "VlanRole 1", slug: "vlanrole-1", site: "U2l0ZU5vZGU6MQ=="}) {
+    vlanGroup{
+      id
+      name
+      slug
+      site {
+        name
+      }
+    }
+  }
+}
+```
+ 
+ Update
+```
+mutation{
+  updateVlanGroup(input: { id:"VkxBTkdyb3VwTm9kZToy", name: "VlanRole A", slug: "vlanrole-A", site: "U2l0ZU5vZGU6MQ=="}) {
+    vlanGroup{
+      id
+      name
+      slug
+      site {
+        name
+      }
+    }
+  }
+}
+```
+ 
+ Delete
+```
+mutation{
+  deleteVlanGroup(input: { id:"VkxBTkdyb3VwTm9kZToy"}) {
+    vlanGroup{
+      id
+      name
+      slug
+      site {
+        name
+      }
+    }
+  }
+}
+```
+
+ ### VLAN
+ 
+ Get all
+```
+ { vlans {
+    edges {
+      node {
+        id
+        name
+        description
+        vid
+        site{
+          name
+        }
+        group{
+          name
+        }
+        tenant{
+          name
+        }
+        role{
+          name
+        }
+      }
+    }
+  }
+```
+ 
+ Create 
+```
+mutation{
+  newVlan(input: {  site: "U2l0ZU5vZGU6MQ==", group: "VkxBTkdyb3VwTm9kZTox", tenant: "VGVuYW50Tm9kZToy", role: "Um9sZU5vZGU6NA==", vid: 2, name: "vlan2", description: "test"}) {
+    vlan{
+      id
+      name
+      site {
+        name
+      }
+      group{
+        name
+      } 
+      tenant{
+        name
+      }
+      role{
+        name
+      }
+      vid
+      name
+      description
+    }
+  }
+}
+```
+ 
+ Update
+```
+mutation{
+  updateVlan(input: { id:"VkxBTk5vZGU6Mg==", site: "U2l0ZU5vZGU6MQ==", group: "VkxBTkdyb3VwTm9kZTox", tenant: "VGVuYW50Tm9kZToy", role: "Um9sZU5vZGU6NA==", vid: 3, name: "vlanA", description: "desc"}) {
+    vlan{
+      id
+      name
+      site {
+        name
+      }
+      group{
+        name
+      } 
+      tenant{
+        name
+      }
+      role{
+        name
+      }
+      vid
+      name
+      description
+    }
+  }
+}
+```
+ 
+ Delete
+```
+mutation{
+  deleteVlan(input: { id:"VkxBTk5vZGU6Mg=="}) {
+    vlan{
+      id      
+    }
+  }
+}
+```
+
+### VRF
+ Get all
+```
+{
+  vrfs {
+    edges {
+      node {
+        id
+        name
+        rd    
+        description
+        enforceUnique
+        tenant {
+          name
+        }      
+      }
+    }
+  }
+}
+```
+ 
+ Create 
+```
+mutation{
+  newVrf(input: { tenant: "VGVuYW50Tm9kZToy",  name: "vrf", rd: "rd", enforceUnique: true, description: "desc" }) {
+    vrf{
+        id
+        name
+        rd    
+        description
+        enforceUnique
+        tenant {
+        name
+      }      
+    }
+  }
+}
+```
+ 
+ Update
+```
+mutation{
+  updateVrf(input: { id: "VlJGTm9kZToy", tenant: "VGVuYW50Tm9kZToy",  name: "vrfA", rd: "rd", enforceUnique: true, description: "desc" }) {
+    vrf{
+        id
+        name
+        rd    
+        description
+        enforceUnique
+        tenant {
+        name
+      }      
+    }
+  }
+}
+```
+ 
+ Delete
+```
+mutation{
+  deleteVrf(input: { id: "VlJGTm9kZTox" }) {
+    vrf{
+       id    
+    }
+  }
+}
+```
+
+### RIR
+ Get all
+```
+{
+  rirs {
+    edges {
+      node {
+        id
+        name
+        slug
+        isPrivate
+      }
+    }
+  }
+}
+```
+ 
+ Create 
+```
+mutation{
+  newRir(input: { name: "rir",  slug: "rir", isPrivate: true }) {
+    rir{
+        id
+        name
+        slug
+        isPrivate     
+    }
+  }
+}
+```
+ 
+ Update
+```
+mutation{
+  updateRir(input: { id:"UklSTm9kZTo3", name: "rirA",  slug: "rira", isPrivate: true }) {
+    rir{
+        id
+        name
+        slug
+        isPrivate     
+    }
+  }
+}
+```
+ 
+ Delete
+```
+mutation{
+  deleteRir(input: { id:"UklSTm9kZTo3" }) {
+    rir{
+        id
+        name
+        slug
+        isPrivate     
+    }
+  }
+}
+```
+
+### Aggregate
+ Get all
+```
+{
+  aggregates {
+    edges {
+      node {
+        id
+        family
+        prefix
+        rir {
+          id
+          name
+        }
+        dateAdded
+       description
+      }
+    }
+  }
+}
+```
+ 
+ Create 
+```
+mutation{
+  newAggregate(input: { family: 4, prefix: "173.16.0.0/12", rir: "UklSTm9kZTo1", dateAdded: "2015-01-01", description: "desc" }) {
+    aggregate{
+        id
+        family
+        prefix
+        rir {
+          id
+          name
+        }
+        dateAdded
+        description   
+    }
+  }
+}
+```
+ 
+ Update
+```
+mutation{
+  updateAggregate(input: { id: "QWdncmVnYXRlTm9kZTox", rir: "UklSTm9kZTo1", dateAdded: "2017-01-01", description: "desc", prefix: "14.0.0.0/8"}) {
+    aggregate{
+        id
+        family
+        prefix
+        rir {
+          id
+          name
+        }
+    	dateAdded
+        description 
+    }
+  }
+}
+```
+ 
+ Delete
+```
+mutation{
+  deleteAggregate(input: { id: "QWdncmVnYXRlTm9kZTox"}) {
+    aggregate{
+        id
+        family
+        prefix
+        rir {
+          id
+          name
+        }
+        dateAdded
+        description 
+    }
+  }
+}
+```
+
+### IPAddress
+Get all
+```
+{
+  ipAddress {
+    edges {
+      node {
+        id
+        family
+        address
+        vrf {
+          name
+        }
+        tenant {
+          name
+        }
+        interface {
+          name
+        }
+        natInside {
+          id
+        }
+        natOutside {
+          id
+        }
+        description
+        status        
+      }
+    }
+  }
+}
+```
+ 
+ Create 
+```
+mutation{
+  newIpAddress(input: { address: "173.16.0.0/12", vrf: "VlJGTm9kZToz", tenant: "VGVuYW50Tm9kZToy", interface: "SW50ZXJmYWNlTm9kZTox", natInside: "SVBBZGRyZXNzTm9kZTox", description: "desc", status: 1}) {
+    ipAddress{
+     	id
+        family
+        address
+        vrf {
+          name
+        }
+        tenant {
+          name
+        }
+        interface {
+          name
+        }
+        natInside {
+          id
+        }
+        natOutside {
+          id
+        }
+        description
+        status  
+    }
+  }
+}
+```
+ 
+ Update
+```
+mutation{
+  updateIpAddress(input: { id:"SVBBZGRyZXNzTm9kZTox", address: "177.12.0.0/24", vrf: "VlJGTm9kZToz", tenant: "VGVuYW50Tm9kZToy", interface: "SW50ZXJmYWNlTm9kZTox", description: "txt", status: 1}) {
+    ipAddress{
+     	id
+        family
+        address
+        vrf {
+          name
+        }
+        tenant {
+          name
+        }
+        interface {
+          name
+        }
+        natInside {
+          id
+        }
+        natOutside {
+          id
+        }
+        description
+        status  
+    }
+  }
+}
+```
+ 
+ Delete
+```
+mutation{
+  deleteIpAddress(input: { id:"SVBBZGRyZXNzTm9kZTox"}) {
+    ipAddress{
+        id
+        family
+        address
+    }
+  }
+}
+```
+
+### Prefix
+Get all
+```
+{
+  prefixes {
+    edges {
+      node {
+        id
+        family
+        prefix
+        site {
+          id
+        }
+        vrf {
+          id
+        }
+        tenant {
+          id
+        }
+        vlan {
+          id
+        }
+        status
+        role {
+          id
+        }
+        isPool
+        description
+      }
+    }
+  }
+}
+```
+ 
+ Create 
+```
+mutation{
+  newPrefix(input: { prefix: "173.16.0.0/12", description: "desc", site: "U2l0ZU5vZGU6MQ==", vrf: "VlJGTm9kZToz", tenant: "VGVuYW50Tm9kZToy", status: 1, role: "Um9sZU5vZGU6NA==", isPool: false}) {
+    prefix{
+        id
+      	description
+        family
+        prefix
+        site {
+          id
+        }
+        vrf {
+          id
+        }
+        tenant {
+          id
+        }
+        vlan {
+          id
+        }
+        status
+        role {
+          id
+        }
+        isPool        
+    }
+  }
+}
+```
+ 
+ Update
+```
+mutation{
+  updatePrefix(input: { id: "UHJlZml4Tm9kZToxMQ==", prefix: "173.16.0.0/24", description: "txt", site: "U2l0ZU5vZGU6MQ==", vrf: "VlJGTm9kZToz", tenant: "VGVuYW50Tm9kZToy", status: 2, role: "Um9sZU5vZGU6NA==", isPool: true}) {
+    prefix{
+        id
+      	description
+        family
+        prefix
+        site {
+          id
+        }
+        vrf {
+          id
+        }
+        tenant {
+          id
+        }
+        vlan {
+          id
+        }
+        status
+        role {
+          id
+        }
+        isPool        
+    }
+  }
+}
+```
+ 
+ Delete
+```
+mutation{
+  deletePrefix(input: {id: "UHJlZml4Tm9kZToxMQ=="}) {
+    prefix{
+        id
+        description
+        family
+        prefix
+        site {
+          id
+        }
+        vrf {
+          id
+        }
+        tenant {
+          id
+        }
+        vlan {
+          id
+        }
+        status
+        role {
+          id
+        }
+        isPool        
+    }
+  }
+}
+```
