@@ -27,6 +27,12 @@ Available Models for CRUD
     * RIR
     * Aggregate
     * Prefix
+* VIRTUALIZATION
+    * ClusterType
+    * ClusterGroup
+    * Cluster
+    * VirtualMachine
+
 
 Build package (optional)
 ------------------------

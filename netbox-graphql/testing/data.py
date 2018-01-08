@@ -2,6 +2,7 @@ from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
 from dcim.models import Site, Interface, Region
 from tenancy.models import Tenant, TenantGroup
 from ipam.models import Role, VLANGroup, VLAN, VRF, RIR, Aggregate, IPAddress, Prefix
+from virtualization.models import ClusterType, ClusterGroup, Cluster, VirtualMachine
 from netaddr import IPNetwork
 
 # circuits
@@ -240,3 +241,49 @@ def initialize_prefix(id):
     )
     prefix.save()
     return prefix
+
+# virtualization
+def initialize_cluster_type(id):
+    cluster_type = ClusterType(
+        id = id,
+        name = 'Type '+id,
+        slug = 'type'+id
+    )
+    cluster_type.save()
+    return  cluster_type
+
+def initialize_cluster_group(id):
+    cluster_group = ClusterGroup(
+        id = id,
+        name = 'Group '+id,
+        slug = 'group'+id
+    )
+    cluster_group.save()
+    return  cluster_group
+
+def initialize_cluster(id):
+    type = initialize_cluster_type(id)
+    cluster = Cluster(
+        id = id,
+        name = 'Cluster' + id,
+        type = type
+    )
+    cluster.save()
+    return cluster
+
+def initialize_virtual_machine(id):
+    cluster = initialize_cluster(id)
+
+    virtual_machine = VirtualMachine(
+        id = id,
+        name = 'VM' + id,
+        status = 1,
+        cluster = cluster,
+        vcpus = 128,
+        memory = 256,
+        disk = 512,
+        comments = 'txt'
+    )
+
+    virtual_machine.save()
+    return virtual_machine
