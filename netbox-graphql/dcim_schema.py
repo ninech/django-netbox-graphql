@@ -9,7 +9,7 @@ from graphql_relay.node.node import from_global_id
 
 from .custom_filter_fields import date_types, string_types, number_types
 from .helper_methods import not_none, set_and_save
-from dcim.models import Device, Interface, Site, Region
+from dcim.models import Device, Interface, Site, Region, Platform, DeviceRole
 from dcim.fields import ASNField, MACAddressField
 from tenancy.models import Tenant
 
@@ -53,6 +53,25 @@ class RegionNode(DjangoObjectType):
             'slug': ['exact'],
         }
 
+class DeviceRoleNode(DjangoObjectType):
+    class Meta:
+        model = DeviceRole
+        interfaces = (Node, )
+        filter_fields = {
+            'id': ['exact'],
+            'name': string_types,
+            'slug': ['exact'],
+        }
+
+class PlatformNode(DjangoObjectType):
+    class Meta:
+        model = Platform
+        interfaces = (Node, )
+        filter_fields = {
+            'id': ['exact'],
+            'name': string_types,
+            'slug': ['exact'],
+        }
 # Queries
 class DcimQuery(AbstractType):
     devices = DjangoFilterConnectionField(DeviceNode)

@@ -27,6 +27,12 @@ Available Models for CRUD
     * RIR
     * Aggregate
     * Prefix
+* VIRTUALIZATION
+    * ClusterType
+    * ClusterGroup
+    * Cluster
+    * VirtualMachine
+
 
 Build package (optional)
 ------------------------
@@ -144,14 +150,9 @@ The simplest way to make package and deploy it is with using `twine`::
 
 Tests
 -----
-Run unit tests::
-
-    docker-compose up -d postgres
-    
-    # wait until the database started.
-
-    docker-compose run --rm --entrypoint './manage.py' netbox test # runs all tests
-    docker-compose run --rm --entrypoint './manage.py' netbox test netbox-graphql/ # runs only netbox-graphql module tests
+Run unit tests::    
+    docker-compose run netbox ./manage.py test # runs all tests
+    docker-compose run netbox ./manage.py test netbox-graphql/ # runs only netbox-graphql module tests
 
     # At the end, you can stop any running service and cleanup as follows:
     docker-compose down
