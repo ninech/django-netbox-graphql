@@ -1,11 +1,12 @@
 FROM ninech/netbox
 
-RUN ["pip", "install", "graphene-django==1.3", "graphene==1.4", "graphql-core==1.1", "snapshottest", "pytest"]
+ENV NETBOX_GRAPHQL_PATH /opt/netbox-graphql
+ENV NETBOX_PATH /opt/netbox/netbox
+
+COPY . ${NETBOX_GRAPHQL_PATH}
+RUN pip install -e ${NETBOX_GRAPHQL_PATH}
 
 COPY docker /tmp/
-
-RUN cat /tmp/settings.py >> /opt/netbox/netbox/netbox/settings.py
-RUN cat /tmp/urls.py >> /opt/netbox/netbox/netbox/urls.py
-
-COPY netbox-graphql /opt/netbox/netbox/netbox-graphql
-
+RUN cat /tmp/settings.py >> ${NETBOX_PATH}/netbox/settings.py && \
+    cat /tmp/urls.py >> ${NETBOX_PATH}/netbox/urls.py && \
+    ln -s ${NETBOX_GRAPHQL_PATH}/netbox-graphql ${NETBOX_PATH}/netbox-graphql
