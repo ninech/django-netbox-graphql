@@ -5,12 +5,12 @@ services:
   - docker
 
 install:
-  - docker-compose -f docker-compose.test.yml pull --parallel
-  - docker-compose -f docker-compose.test.yml build
+  - docker-compose pull --parallel
+  - docker-compose build
 
 script:
-  - docker-compose -f docker-compose.test.yml run netbox
+  - docker-compose run netbox ./manage.py test
 
 after_script:
-  - docker-compose -f docker-compose.test.yml down
+  - docker-compose down
   
