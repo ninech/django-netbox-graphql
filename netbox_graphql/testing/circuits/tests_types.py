@@ -1,7 +1,7 @@
 import pytest
 from graphene.test import Client
 from snapshottest import TestCase
-from netbox_graphql.testing.data import initialize_circuit_type, initialize_circuit, initialize_provider, initialize_circuit_termination, initialize_site
+from netbox_graphql.testing.data import *
 from netbox_graphql.schema import schema
 from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
 
