@@ -1,7 +1,7 @@
 FROM ninech/netbox
 
 COPY . /opt/netbox-graphql
-RUN pip install -e /opt/netbox-graphql
+RUN pip install /opt/netbox-graphql[test]
 
 COPY docker /tmp/
 RUN cat /tmp/settings.py >> /opt/netbox/netbox/netbox/settings.py && \

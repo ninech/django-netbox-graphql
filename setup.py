@@ -41,7 +41,11 @@ setup(
         'graphene-django==1.3',
         'graphene==1.4',
         'graphql-core==1.1',
-        'snapshottest',
-        'pytest'
     ],
+    extras_require={
+        'test': [
+            'snapshottest',
+            'pytest',
+        ]
+    },
 )
