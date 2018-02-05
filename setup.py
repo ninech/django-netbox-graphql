@@ -45,7 +45,6 @@ setup(
     extras_require={
         'test': [
             'snapshottest',
-            'pytest',
         ]
     },
 )
