@@ -38,8 +38,14 @@ setup(
     ],
     keywords='django netbox graphql python',
     install_requires=[
-        'django>=1.11',
-        'graphene-django>=1.0',
-        'django-filter>=1.0.2',
-      ],
+        'graphene-django==1.3',
+        'graphene==1.4',
+        'graphql-core==1.1',
+    ],
+    extras_require={
+        'test': [
+            'snapshottest',
+            'pytest',
+        ]
+    },
 )
