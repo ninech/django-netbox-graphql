@@ -102,4 +102,4 @@ ENV/
 *.pyc
 
 # snaptests output
-netbox_graphql/testing/snapshots/
+snapshots/

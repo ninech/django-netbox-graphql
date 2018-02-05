@@ -8,6 +8,7 @@ services:
         - postgres
         env_file: netbox.env
         volumes:
+        - .:/opt/netbox-graphql
         - netbox-nginx-config:/etc/netbox-nginx/
         - netbox-static-files:/opt/netbox/netbox/static
     nginx:
