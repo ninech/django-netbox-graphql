@@ -9,4 +9,5 @@ RUN pip install -e ${NETBOX_GRAPHQL_PATH}
 COPY docker /tmp/
 RUN cat /tmp/settings.py >> ${NETBOX_PATH}/netbox/settings.py && \
     cat /tmp/urls.py >> ${NETBOX_PATH}/netbox/urls.py && \
+    rm -rf /tmp/* && \
     ln -s ${NETBOX_GRAPHQL_PATH}/netbox_graphql ${NETBOX_PATH}/netbox_graphql
