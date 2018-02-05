@@ -1,13 +1,9 @@
 FROM ninech/netbox
 
-ENV NETBOX_GRAPHQL_PATH /opt/netbox-graphql
-ENV NETBOX_PATH /opt/netbox/netbox
-
-COPY . ${NETBOX_GRAPHQL_PATH}
-RUN pip install -e ${NETBOX_GRAPHQL_PATH}
+COPY . /opt/netbox-graphql
+RUN pip install /opt/netbox-graphql[test]
 
 COPY docker /tmp/
-RUN cat /tmp/settings.py >> ${NETBOX_PATH}/netbox/settings.py && \
-    cat /tmp/urls.py >> ${NETBOX_PATH}/netbox/urls.py && \
-    rm -rf /tmp/* && \
-    ln -s ${NETBOX_GRAPHQL_PATH}/netbox_graphql ${NETBOX_PATH}/netbox_graphql
+RUN cat /tmp/settings.py >> /opt/netbox/netbox/netbox/settings.py && \
+    cat /tmp/urls.py >> /opt/netbox/netbox/netbox/urls.py && \
+    ln -s /opt/netbox-graphql/netbox-graphql /opt/netbox/netbox/netbox-graphql
