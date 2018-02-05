@@ -104,4 +104,4 @@ ENV/
 
 */*.pyc
 
-/netbox-graphql/testing/snapshots/
+/netbox_graphql/testing/snapshots/

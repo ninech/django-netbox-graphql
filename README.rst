@@ -60,20 +60,20 @@ Quick start
     INSTALLED_APPS = [
     ...
     'graphene_django',
-    'netbox-graphql',
+    'netbox_graphql',
     ]
 
 3. Add graphene settings to netbox/setting.py::
 
     GRAPHIQL_ENABLED = True # optional, by default True, set False to disable it
     GRAPHENE = {
-        'SCHEMA' : 'netbox-graphql.schema.schema', #points to the netbox-graphql schema variable in schema.py
+        'SCHEMA' : 'netbox_graphql.schema.schema', #points to the netbox-graphql schema variable in schema.py
         'SCHEMA_INDENT': 2, #defines the indentation space in the output
     }
 
 4. Include the polls URLconf in your project netbox/urls.py like this::
 
-    url(r'^graphql', include('netbox-graphql.urls')),
+    url(r'^graphql', include('netbox_graphql.urls')),
 
 5. Visit http://127.0.0.1:8000/graphql to fetch records with graphql::
 
@@ -152,7 +152,7 @@ Tests
 -----
 Run unit tests::    
     docker-compose run netbox ./manage.py test # runs all tests
-    docker-compose run netbox ./manage.py test netbox-graphql/ # runs only netbox-graphql module tests
+    docker-compose run netbox ./manage.py test netbox_graphql/ # runs only netbox_graphql module tests
 
     # At the end, you can stop any running service and cleanup as follows:
     docker-compose down
