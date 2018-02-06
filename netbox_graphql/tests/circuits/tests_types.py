@@ -9,6 +9,7 @@ from netbox_graphql.schema import schema
 from graphql_relay.node.node import from_global_id, to_global_id
 
 from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
+from netbox_graphql.tests.factories import CircuitTypeFactory
 
 
 class CircuitTypeCreateTestCase(TestCase):
@@ -45,20 +46,8 @@ class CircuitTypeCreateTestCase(TestCase):
 class CircuitTypeQueryMultipleTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.typeOne = CircuitType(
-            id='1234',
-            name='Awesome Type',
-            slug='awsme1'
-        )
-        cls.typeOne.save()
-
-        cls.typeTwo = CircuitType(
-            id='1235',
-            name='Pooor Type',
-            slug='poo1'
-        )
-        cls.typeTwo.save()
-
+        cls.typeOne = CircuitTypeFactory()
+        cls.typeTwo = CircuitTypeFactory(id=1235)
         cls.query = '''
         query {circuitTypes {
             edges {
@@ -83,18 +72,8 @@ class CircuitTypeQueryMultipleTestCase(TestCase):
 class CircuitTypeQuerySingleTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.typeOne = CircuitType(
-            id='1234',
-            name='Awesome Type',
-            slug='awsme1'
-        )
-        cls.typeOne.save()
-
-        cls.typeTwo = CircuitType(
-            id='1235',
-            name='Pooor Type',
-            slug='poo1'
-        )
+        cls.typeOne = CircuitTypeFactory()
+        cls.typeTwo = CircuitTypeFactory(id=1235)
         cls.typeTwo.save()
 
         cls.query = Template('''
@@ -122,7 +101,7 @@ class CircuitTypeQuerySingleTestCase(TestCase):
         result = schema.execute(self.query)
         expected = {'circuitTypes':
                     {'edges': [
-                        {'node': {'name': 'Awesome Type', 'slug': 'awsme1'}}
+                        {'node': {'name': self.typeOne.name, 'slug': self.typeOne.slug}}
                     ]}
                     }
         self.assertEquals(result.data, expected)
@@ -131,13 +110,7 @@ class CircuitTypeQuerySingleTestCase(TestCase):
 class CircuitTypeUpdateTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.typeOne = CircuitType(
-            id='1234',
-            name='Awesome Type',
-            slug='awsme1'
-        )
-        cls.typeOne.save()
-
+        cls.typeOne = CircuitTypeFactory()
         cls.query = Template('''
         mutation {
           updateCircuitType(input: {id:"$id", name: "New Name", slug: "nsl1"}) {
@@ -174,13 +147,7 @@ class CircuitTypeUpdateTestCase(TestCase):
 class CircuitTypeDeleteTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.typeOne = CircuitType(
-            id='1234',
-            name='Awesome Type',
-            slug='awsme1'
-        )
-        cls.typeOne.save()
-
+        cls.typeOne = CircuitTypeFactory()
         cls.query = Template('''
         mutation {
           deleteCircuitType(input: {id:"$id"}) {
