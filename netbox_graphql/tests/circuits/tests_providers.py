@@ -1,16 +1,24 @@
 
+from string import Template
+
 from graphene.test import Client
-from snapshottest import TestCase
+from django.test import TestCase
+
 from netbox_graphql.tests.data import *
+from netbox_graphql.tests.utils import obj_to_global_id
+from netbox_graphql.tests.factories import ProviderFactory
+
 from netbox_graphql.schema import schema
-from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
+
+from graphql_relay.node.node import from_global_id, to_global_id
+
+from circuits.models import Provider
 
 
-
-
-class ProviderTestCase(TestCase):
-    def test_creating_new_provider(self):
-        query = '''
+class ProviderCreateTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.query = '''
         mutation {
           newProvider(input: {name: "Provider123", slug: "provider123", asn: 256, account: "account",
           portalUrl: "http://github.com/", nocContact:"noc", comments: "my comment"}) {
@@ -26,93 +34,156 @@ class ProviderTestCase(TestCase):
           }
         }
         '''
+
+    def test_creating_provider_returns_no_error(self):
+        result = schema.execute(self.query)
+        assert not result.errors
+
+    def test_creating_provider_returns_data(self):
         expected = {'newProvider':
                     {'provider': {'slug': 'provider123', 'name': 'Provider123',
                                   'asn': 256.0, 'account': 'account', 'portalUrl': 'http://github.com/',
                                   'nocContact': 'noc', 'comments': 'my comment'}}}
-        result = schema.execute(query)
-        assert not result.errors
-        assert result.data == expected
 
-    def test_correct_fetch_of_provider(self):
-        initialize_provider()
-        query = '''
+        result = schema.execute(self.query)
+        self.assertEquals(result.data, expected)
+
+    def test_creating_provider_creates_it(self):
+        oldCount = Provider.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(Provider.objects.all().count(), oldCount + 1)
+
+
+class ProviderQueryMultipleTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = ProviderFactory()
+        cls.second = ProviderFactory()
+        cls.query = '''
+        query {providers {
+            edges {
+                node {
+                id
+                name
+                slug
+                }
+            }
+        }}
+        '''
+
+    def test_querying_all_types_returns_no_error(self):
+        result = schema.execute(self.query)
+        assert not result.errors
+
+    def test_querying_all_types_returns_two_results(self):
+        result = schema.execute(self.query)
+        self.assertEquals(len(result.data['providers']['edges']), 2)
+
+
+class ProviderQuerySingleTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = ProviderFactory()
+        cls.second = ProviderFactory()
+
+        cls.query = Template('''
         {
-          providers(id: "Q2lyY3VpdFR5cGVOb2RlOjExMQ==") {
+          providers(id: "$id") {
             edges {
               node {
-                id
-                slug
                 name
+                slug
                 asn
                 account
                 portalUrl
                 nocContact
-                comments
               }
             }
           }
         }
-        '''
+        ''').substitute(id=obj_to_global_id(cls.second))
+
+    def test_querying_single_provider_returns_no_error(self):
+        result = schema.execute(self.query)
+        assert not result.errors
+
+    def test_querying_single_provider_returns_result(self):
+        result = schema.execute(self.query)
+        self.assertEquals(len(result.data['providers']['edges']), 1)
+
+    def test_querying_single_provider_returns_expected_result(self):
+        result = schema.execute(self.query)
         expected = {'providers':
-                    {'edges': [{'node': {'id': 'UHJvdmlkZXJOb2RlOjExMQ==', 'slug': 'provider1',
-                                         'name': 'Provider 1', 'asn': 256.0, 'account': '12345',
-                                         'portalUrl': 'https://www.nine.ch', 'nocContact': 'noc_contact',
-                                                      'comments': 'comments'}}]}}
-        result = schema.execute(query)
-        assert not result.errors
-        assert result.data == expected
+                    {'edges': [
+                        {'node': {'name': self.second.name,
+                                  'slug': self.second.slug,
+                                  'asn': self.second.asn,
+                                  'account': self.second.account,
+                                  'portalUrl': self.second.portal_url,
+                                  'nocContact': self.second.noc_contact,
+                                  }}
+                    ]}}
+        self.assertEquals(result.data, expected)
 
-    def test_update_provider(self):
-        initialize_provider()
-        query = '''
+
+class ProviderUpdateTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = ProviderFactory()
+        cls.query = Template('''
         mutation {
-          updateProvider(input: {id:"UHJvdmlkZXJOb2RlOjExMQ==", name: "Provider1", slug: "provider1231",
-          asn: 512, account: "account", portalUrl: "http://github.com/", nocContact:"noc", comments: "my comment"}) {
+          updateProvider(input: {id:"$id", name: "New Name", slug: "psl1", 
+          portalUrl: "http://github.com/", comments: "my comment"}) {
             provider {
-              id
-              slug
               name
-              asn
-              account
-              portalUrl
-              nocContact
-              comments
+              slug
             }
           }
         }
-        '''
+        ''').substitute(id=obj_to_global_id(cls.first))
+
+    def test_updating_returns_no_error(self):
+        result = schema.execute(self.query)
+        assert not result.errors
+
+    def test_updating_doesnt_change_count(self):
+        oldCount = Provider.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(Provider.objects.all().count(), oldCount)
+
+    def test_updating_returns_updated_data(self):
         expected = {'updateProvider':
-                    {'provider': {'id': 'UHJvdmlkZXJOb2RlOjExMQ==', 'slug': 'provider1231',
-                                  'name': 'Provider1', 'asn': 512.0, 'account': 'account',
-                                  'portalUrl': 'http://github.com/', 'nocContact': 'noc', 'comments': 'my comment'}}}
+                    {'provider': {'name': 'New Name', 'slug': 'psl1'}}}
+        result = schema.execute(self.query)
+        self.assertEquals(result.data, expected)
 
-        result = schema.execute(query)
-        assert not result.errors
-        assert result.data == expected
+    def test_updating_alters_data(self):
+        schema.execute(self.query)
+        provider = Provider.objects.get(id=self.first.id)
+        self.assertEquals(provider.name, 'New Name')
+        self.assertEquals(provider.slug, 'psl1')
+        self.assertEquals(provider.portal_url, 'http://github.com/')
 
-    def test_delete_provider(self):
-        initialize_provider()
-        query = '''
+
+class ProviderDeleteTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = ProviderFactory()
+        cls.query = Template('''
         mutation {
-          deleteProvider(input: {id:"UHJvdmlkZXJOb2RlOjExMQ=="}) {
+          deleteProvider(input: {id:"$id"}) {
             provider {
               id
-              slug
-              name
-              asn
-              account
-              portalUrl
-              nocContact
-              comments
             }
           }
         }
-        '''
-        expected = {'deleteProvider': {'provider': {'id': 'UHJvdmlkZXJOb2RlOk5vbmU=', 'slug': 'provider1',
-                                                    'name': 'Provider 1', 'asn': 256.0, 'account': '12345',
-                                                    'portalUrl': 'https://www.nine.ch', 'nocContact': 'noc_contact',
-                                                    'comments': 'comments'}}}
-        result = schema.execute(query)
+        ''').substitute(id=obj_to_global_id(cls.first))
+
+    def test_deleting_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
+
+    def test_deleting_removes_a_type(self):
+        oldCount = Provider.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(Provider.objects.all().count(), oldCount - 1)

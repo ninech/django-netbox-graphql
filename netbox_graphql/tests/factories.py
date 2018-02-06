@@ -6,6 +6,21 @@ from ipam.models import IPAddress, VLANGroup, Role, VLAN, VRF, RIR, Aggregate, I
 from tenancy.models import Tenant, TenantGroup
 
 
+class ProviderFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Provider
+
+    id = factory.Sequence(lambda n: n)
+    name = factory.LazyAttribute(lambda o: 'Factory %i' % o.id)
+    slug = factory.LazyAttribute(lambda o: 'f%i' % o.id)
+    asn = 29691.0
+    account = '12345'
+    portal_url = 'https://nine.ch'
+    noc_contact = 'noc@postmaster.com'
+    admin_contact = 'admin@postmaster.com'
+    comments = 'Awesome Comment!'
+
+
 class CircuitTypeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = CircuitType
