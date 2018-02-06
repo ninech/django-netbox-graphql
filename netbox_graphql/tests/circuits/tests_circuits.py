@@ -1,45 +1,32 @@
+from string import Template
+
 from graphene.test import Client
-from snapshottest import TestCase
+from django.test import TestCase
+
 from netbox_graphql.tests.data import *
 from netbox_graphql.schema import schema
-from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
+from netbox_graphql.tests.utils import obj_to_global_id
+from netbox_graphql.tests.factories.circuit_factories import CircuitFactory, ProviderFactory, CircuitTypeFactory
+
+from circuits.models import Circuit
 
 
-class CircuitTestCase(TestCase):
-    def test_creating_new_circuit(self):
-        circuit_type = CircuitType(
-            id='123',
-            name='Type 123',
-            slug='type123'
-        )
-        circuit_type.save()
-
-        provider = Provider(
-            id='124',
-            name='Provider 124',
-            slug='provider124',
-            asn='256',
-            account='12345',
-            portal_url='https://www.nine.ch',
-            noc_contact='noc_contact',
-            admin_contact='admin_contact',
-            comments='comments',
-            created='2015-01-15'
-        )
-        provider.save()
-
-        query = '''
+class CreateTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.provider = ProviderFactory()
+        cls.circuit_type = CircuitTypeFactory()
+        cls.circuit = CircuitFactory.build()
+        cls.query = Template('''
         mutation {
-          newCircuit(input: {cid: "cid112", provider:"UHJvdmlkZXJOb2RlOjEyNA==", type:"Q2lyY3VpdFR5cGVOb2RlOjEyMw==",
-          installDate:"2017-10-12", commitRate: 12, description:"desc", comments:"dsadsa" }) {
+          newCircuit(input: {cid: "$cid", provider:"$providerId", type:"$typeId",
+          installDate:"2017-10-12", commitRate: 12, description:"desc", comments:"Awesome Comment!" }) {
             circuit {
               cid
               provider {
-                id
                 name
               }
               type {
-                id
                 name
               }
               installDate
@@ -49,107 +36,165 @@ class CircuitTestCase(TestCase):
             }
           }
         }
-        '''
-        expected = {'newCircuit': {'circuit': {'cid': 'cid112',
-                                               'provider': {'id': 'UHJvdmlkZXJOb2RlOjEyNA==', 'name': 'Provider 124'},
-                                               'type': {'id': 'Q2lyY3VpdFR5cGVOb2RlOjEyMw==', 'name': 'Type 123'},
-                                               'installDate': '2017-10-12', 'commitRate': 12, 'description': 'desc',
-                                               'comments': 'dsadsa'}}}
+        ''').substitute(cid=cls.circuit.cid,
+                        providerId=obj_to_global_id(cls.provider),
+                        typeId=obj_to_global_id(cls.circuit_type))
 
-        result = schema.execute(query)
+    def test_creating_provider_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
 
-    def test_correct_fetch_of_circuit(self):
-        initialize_circuit('112')
-        query = '''
-        {
-          circuits(id: "Q2lyY3VpdE5vZGU6MTEy") {
+    def test_creating_provider_returns_data(self):
+        expected = {'newCircuit': {'circuit': {'cid': self.circuit.cid,
+                                               'provider': {'name': self.provider.name},
+                                               'type': {'name': self.circuit_type.name},
+                                               'installDate': '2017-10-12',
+                                               'commitRate': 12,
+                                               'description': 'desc',
+                                               'comments': 'Awesome Comment!'}}}
+
+        result = schema.execute(self.query)
+        self.assertEquals(result.data, expected)
+
+    def test_creating_provider_creates_it(self):
+        oldCount = Circuit.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(Circuit.objects.all().count(), oldCount + 1)
+
+
+class QueryMultipleTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = CircuitFactory()
+        cls.second = CircuitFactory(provider=cls.first.provider,
+                                    type=cls.first.type)
+        cls.query = '''
+        query {circuits {
             edges {
-              node {
-                id
-                cid
-                provider {
-                  id
-                  name
+                node {
+                    id
+                    cid
+                    provider {
+                        id
+                    }
+                    type {
+                        id
+                    }
                 }
-                type {
-                  id
-                  name
-                }
-                installDate
-                commitRate
-                description
-              }
             }
-          }
-        }
+        }}
         '''
-        expected = {'circuits': {'edges': [{'node': {'id': 'Q2lyY3VpdE5vZGU6MTEy', 'cid': 'cid',
-                                                     'provider': {'id': 'UHJvdmlkZXJOb2RlOjExMg==',
-                                                                  'name': 'Provider112'},
-                                                     'type': {'id': 'Q2lyY3VpdFR5cGVOb2RlOjExMg==', 'name': 'Type112'},
-                                                     'installDate': '2017-10-12', 'commitRate': 12,
-                                                     'description': 'desc'}}]}}
-        result = schema.execute(query)
-        assert not result.errors
-        assert result.data == expected
 
-    def test_update_circuit(self):
-        initialize_circuit('117')
-        query = '''
+    def test_querying_all_types_returns_no_error(self):
+        result = schema.execute(self.query)
+        assert not result.errors
+
+    def test_querying_all_types_returns_two_results(self):
+        result = schema.execute(self.query)
+        self.assertEquals(len(result.data['circuits']['edges']), 2)
+
+
+class QuerySingleTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = CircuitFactory()
+        cls.second = CircuitFactory(provider=cls.first.provider,
+                                    type=cls.first.type)
+        cls.query = Template('''
+        {
+            circuits(id: "$id") {
+                edges {
+                    node {
+                        cid
+                        provider {
+                            name
+                        }
+                        type {
+                            name
+                        }
+                    }
+                }
+            }
+        }
+        ''').substitute(id=obj_to_global_id(cls.second))
+
+    def test_querying_single_provider_returns_no_error(self):
+        result = schema.execute(self.query)
+        assert not result.errors
+
+    def test_querying_single_provider_returns_result(self):
+        result = schema.execute(self.query)
+        self.assertEquals(len(result.data['circuits']['edges']), 1)
+
+    def test_querying_single_provider_returns_expected_result(self):
+        result = schema.execute(self.query)
+        expected = {'circuits':
+                    {'edges': [
+                        {'node': {'cid': self.second.cid,
+                                  'provider': {'name': self.second.provider.name},
+                                  'type': {'name': self.second.type.name},
+                                  }}
+                    ]}}
+        self.assertEquals(result.data, expected)
+
+
+class UpdateTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = CircuitFactory()
+        cls.query = Template('''
         mutation {
-          updateCircuit(input: {id: "Q2lyY3VpdE5vZGU6MTEy", cid: "ci3d", installDate:"2017-11-12", commitRate: 12,
-           description:"someting", comments:"dsadsa" }) {
+          updateCircuit(input:{id: "$id", cid: "117", comments: "New Awesome Comment!" }) {
             circuit {
-                id
                 cid
-                installDate
-                commitRate
-                description
                 comments
             }
           }
         }
-        '''
-        expected = {'updateCircuit': {
-            'circuit': {'id': 'Q2lyY3VpdE5vZGU6MTEy', 'cid': 'ci3d', 'installDate': '2017-11-12', 'commitRate': 12,
-                        'description': 'someting', 'comments': 'dsadsa'}}}
+        ''').substitute(id=obj_to_global_id(cls.first))
 
-        result = schema.execute(query)
+    def test_updating_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
 
-    def test_delete_circuit(self):
-        initialize_circuit('115')
-        query = '''
+    def test_updating_doesnt_change_count(self):
+        oldCount = Circuit.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(Circuit.objects.all().count(), oldCount)
+
+    def test_updating_returns_updated_data(self):
+        expected = {'updateCircuit':
+                    {'circuit': {'cid': '117', 'comments': 'New Awesome Comment!'}}}
+        result = schema.execute(self.query)
+        self.assertEquals(result.data, expected)
+
+    def test_updating_alters_data(self):
+        schema.execute(self.query)
+        circuit = Circuit.objects.get(id=self.first.id)
+        self.assertEquals(circuit.cid, '117')
+        self.assertEquals(circuit.comments, 'New Awesome Comment!')
+
+
+class DeleteTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = CircuitFactory()
+        cls.query = Template('''
         mutation {
-          deleteCircuit(input: {id: "Q2lyY3VpdE5vZGU6MTE1"}) {
+          deleteCircuit(input: {id: "$id"}) {
             circuit {
                id
                cid
-                provider {
-                  id
-                  name
-                }
-                type {
-                  id
-                  name
-                }
-                installDate
-                commitRate
-                description
-                comments
             }
           }
         }
-        '''
-        expected = {'deleteCircuit': {'circuit': {'id': 'Q2lyY3VpdE5vZGU6Tm9uZQ==', 'cid': 'cid',
-                                                  'provider': {'id': 'UHJvdmlkZXJOb2RlOjExNQ==', 'name': 'Provider115'},
-                                                  'type': {'id': 'Q2lyY3VpdFR5cGVOb2RlOjExNQ==', 'name': 'Type115'},
-                                                  'installDate': '2017-10-12', 'commitRate': 12, 'description': 'desc',
-                                                  'comments': 'comments'}}}
+        ''').substitute(id=obj_to_global_id(cls.first))
 
-        result = schema.execute(query)
+    def test_deleting_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
+
+    def test_deleting_removes_a_type(self):
+        oldCount = Circuit.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(Circuit.objects.all().count(), oldCount - 1)

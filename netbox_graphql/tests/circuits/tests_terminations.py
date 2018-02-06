@@ -1,129 +1,200 @@
+from string import Template
 
 from graphene.test import Client
-from snapshottest import TestCase
+from django.test import TestCase
+
 from netbox_graphql.tests.data import *
 from netbox_graphql.schema import schema
-from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
+from netbox_graphql.tests.utils import obj_to_global_id
+from netbox_graphql.tests.factories.circuit_factories import CircuitTerminationFactory, CircuitFactory
+from netbox_graphql.tests.factories.dcim_factories import SiteFactory
+
+from circuits.models import CircuitTermination
 
 
+class CreateTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.circuit = CircuitFactory()
+        cls.site = SiteFactory()
 
-
-class CircuitTerminationTestCase(TestCase):
-    def test_creating_new_circuit_termination(self):
-        initialize_site('434')
-        initialize_circuit('434')
-
-        query = '''
+        cls.query = Template('''
         mutation {
-          newCircuitTermination(input: {circuit: "Q2lyY3VpdE5vZGU6NDM0", portSpeed:128, termSide:"A", upstreamSpeed:128, site:"U2l0ZU5vZGU6NDM0", ppInfo:"ppInfo",xconnectId:"xconnectId" }) {
+          newCircuitTermination(input: {circuit: "$circuitId", portSpeed: 128,
+          termSide:"A", upstreamSpeed: 128, site:"$siteId" }) {
             circuitTermination {
-              termSide
-              portSpeed
-              ppInfo
-              upstreamSpeed
-              xconnectId
-              site {
-                id
-                name
-              }
               circuit {
-                id
                 cid
+              }
+              portSpeed
+              termSide
+              upstreamSpeed
+              site {
+                name
               }
             }
           }
         }
-        '''
-        expected = {'newCircuitTermination': {
-            'circuitTermination': {'termSide': 'A', 'portSpeed': 128,
-                                   'ppInfo': 'ppInfo', 'upstreamSpeed': 128, 'xconnectId': 'xconnectId',
-                                   'site': {'id': 'U2l0ZU5vZGU6NDM0', 'name': 'Site Name 434'},
-                                   'circuit': {'id': 'Q2lyY3VpdE5vZGU6NDM0', 'cid': 'cid'}}}}
+        ''').substitute(circuitId=obj_to_global_id(cls.circuit),
+                        siteId=obj_to_global_id(cls.site))
 
-        result = schema.execute(query)
+    def test_creating_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
 
-    def test_correct_fetch_of_circuit_termination(self):
-        initialize_circuit_termination('789')
-        query = '''
+    def test_creating_returns_data(self):
+        expected = {'newCircuitTermination':
+                    {'circuitTermination': {'circuit': {'cid': self.circuit.cid},
+                                            'portSpeed': 128,
+                                            'termSide': 'A',
+                                            'upstreamSpeed': 128,
+                                            'site': {'name': self.site.name}
+                                            }
+                     }}
+        result = schema.execute(self.query)
+        self.assertEquals(result.data, expected)
+
+    def test_creating_creates_it(self):
+        oldCount = CircuitTermination.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(
+            CircuitTermination.objects.all().count(), oldCount + 1)
+
+
+class QueryMultipleTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = CircuitTerminationFactory()
+        cls.second = CircuitTerminationFactory(site=cls.first.site)
+        cls.query = '''
         {
-          circuitTerminations(id:"Q2lyY3VpdFRlcm1pbmF0aW9uTm9kZTo3ODk=") {
+         circuitTerminations {
             edges {
-              node {
-                termSide
-                portSpeed
-                ppInfo
-                upstreamSpeed
-                xconnectId
-                site {
-                  id
-                  name
+                node {
+                    id
+                    site {
+                        id
+                    }
+                    circuit {
+                        id
+                    }
                 }
-                circuit {
-                  id
-                  cid
-                }
-              }
             }
-          }
+         }
         }
         '''
-        expected = {'circuitTerminations': {'edges': [{'node': {'termSide': 'A', 'portSpeed': 256, 'ppInfo': 'pp_info', 'upstreamSpeed': 512, 'xconnectId': 'xconnect_id', 'site': {
-            'id': 'U2l0ZU5vZGU6Nzg5', 'name': 'Site Name 789'}, 'circuit': {'id': 'Q2lyY3VpdE5vZGU6Nzg5', 'cid': 'cid'}}}]}}
 
-        result = schema.execute(query)
+    def test_querying_all_types_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
 
-    def test_update_circuit(self):
-        initialize_circuit_termination('791')
-        query = '''
+    def test_querying_all_types_returns_two_results(self):
+        result = schema.execute(self.query)
+        self.assertEquals(len(result.data['circuitTerminations']['edges']), 2)
+
+
+class QuerySingleTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = CircuitTerminationFactory()
+        cls.query = Template('''
+        {
+         circuitTerminations(id: "$id") {
+            edges {
+                node {
+                    site {
+                        name
+                    }
+                    circuit {
+                        cid
+                    }
+                }
+            }
+         }
+        }
+        ''').substitute(id=obj_to_global_id(cls.first))
+
+    def test_querying_single_provider_returns_no_error(self):
+        result = schema.execute(self.query)
+        assert not result.errors
+
+    def test_querying_single_provider_returns_result(self):
+        result = schema.execute(self.query)
+        self.assertEquals(len(result.data['circuitTerminations']['edges']), 1)
+
+    def test_querying_single_provider_returns_expected_result(self):
+        result = schema.execute(self.query)
+        expected = {'circuitTerminations':
+                    {'edges': [
+                        {'node': {'site': {'name': self.first.site.name},
+                                  'circuit': {'cid': self.first.circuit.cid},
+                                  }}
+                    ]}}
+        self.assertEquals(result.data, expected)
+
+
+class UpdateTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = CircuitTerminationFactory()
+        cls.query = Template('''
         mutation {
-          updateCircuitTermination(input: {id: "Q2lyY3VpdFRlcm1pbmF0aW9uTm9kZTo3ODk=", portSpeed:512, termSide:"Z", upstreamSpeed:512, ppInfo:"ppInfo123", xconnectId:"xconnectId123" }) {
+          updateCircuitTermination(input: {id: "$id", portSpeed: 512, termSide: "Z", upstreamSpeed: 512}) {
             circuitTermination {
-              id
               termSide
               portSpeed
-              ppInfo
               upstreamSpeed
-              xconnectId
             }
           }
         }
-        '''
-        expected = {'updateCircuitTermination': {'circuitTermination': {'id': 'Q2lyY3VpdFRlcm1pbmF0aW9uTm9kZTo3ODk=',
-                                                                        'termSide': 'Z', 'portSpeed': 512, 'ppInfo': 'ppInfo123', 'upstreamSpeed': 512, 'xconnectId': 'xconnectId123'}}}
-        result = schema.execute(query)
-        assert not result.errors
-        assert result.data == expected
+        ''').substitute(id=obj_to_global_id(cls.first))
 
-    def test_delete_circuit_termination(self):
-        initialize_circuit_termination('756')
-        query = '''
+    def test_updating_returns_no_error(self):
+        result = schema.execute(self.query)
+        assert not result.errors
+
+    def test_updating_doesnt_change_count(self):
+        oldCount = CircuitTermination.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(CircuitTermination.objects.all().count(), oldCount)
+
+    def test_updating_returns_updated_data(self):
+        expected = {'updateCircuitTermination':
+                    {'circuitTermination':
+                        {'termSide': 'Z',
+                         'portSpeed': 512,
+                         'upstreamSpeed': 512}
+                     }}
+        result = schema.execute(self.query)
+        self.assertEquals(result.data, expected)
+
+    def test_updating_alters_data(self):
+        schema.execute(self.query)
+        circuit_termination = CircuitTermination.objects.get(id=self.first.id)
+        self.assertEquals(circuit_termination.term_side, 'Z')
+        self.assertEquals(circuit_termination.upstream_speed, 512)
+
+
+class DeleteTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = CircuitTerminationFactory()
+        cls.query = Template('''
         mutation {
-          deleteCircuitTermination(input: {id: "Q2lyY3VpdFRlcm1pbmF0aW9uTm9kZTo3NTY=" }) {
+          deleteCircuitTermination(input: {id: "$id" }) {
             circuitTermination {
               id
-              termSide
-              portSpeed
-              ppInfo
-              upstreamSpeed
-              xconnectId
-              site {
-                id
-                name
-              }
-              circuit {
-                id
-                cid
-              }
             }
           }
         }
-        '''
-        expected = {'deleteCircuitTermination': {'circuitTermination': {'id': 'Q2lyY3VpdFRlcm1pbmF0aW9uTm9kZTpOb25l', 'termSide': 'A', 'portSpeed': 256, 'ppInfo': 'pp_info',
-                                                                        'upstreamSpeed': 512, 'xconnectId': 'xconnect_id', 'site': {'id': 'U2l0ZU5vZGU6NzU2', 'name': 'Site Name 756'}, 'circuit': {'id': 'Q2lyY3VpdE5vZGU6NzU2', 'cid': 'cid'}}}}
-        result = schema.execute(query)
+        ''').substitute(id=obj_to_global_id(cls.first))
+
+    def test_deleting_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
+
+    def test_deleting_removes_a_type(self):
+        oldCount = CircuitTermination.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(
+            CircuitTermination.objects.all().count(), oldCount - 1)

@@ -9,7 +9,7 @@ from netbox_graphql.schema import schema
 from graphql_relay.node.node import from_global_id, to_global_id
 
 from circuits.models import CircuitType
-from netbox_graphql.tests.factories import CircuitTypeFactory
+from netbox_graphql.tests.factories.circuit_factories import CircuitTypeFactory
 
 
 class CircuitTypeCreateTestCase(TestCase):
