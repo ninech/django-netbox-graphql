@@ -36,9 +36,9 @@ class InterfaceFactory(factory.django.DjangoModelFactory):
         model = Interface
 
     id = factory.Sequence(lambda n: n)
-    # device = TODO
-    # virtual_machine = TODO
-    # lag = TODO
+    # device =
+    # virtual_machine =
+    # lag =
     name = factory.LazyAttribute(lambda o: 'Interface %i' % o.id)
     # mac_address =
     # mtu =
