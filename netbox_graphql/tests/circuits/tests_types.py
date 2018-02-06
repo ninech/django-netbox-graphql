@@ -8,7 +8,7 @@ from netbox_graphql.schema import schema
 
 from graphql_relay.node.node import from_global_id, to_global_id
 
-from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
+from circuits.models import CircuitType
 from netbox_graphql.tests.factories import CircuitTypeFactory
 
 
