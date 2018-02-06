@@ -74,7 +74,6 @@ class CircuitTypeQuerySingleTestCase(TestCase):
     def setUpTestData(cls):
         cls.typeOne = CircuitTypeFactory()
         cls.typeTwo = CircuitTypeFactory()
-        cls.typeTwo.save()
 
         cls.query = Template('''
         {
