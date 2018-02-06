@@ -73,7 +73,7 @@ class CircuitTypeQuerySingleTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.typeOne = CircuitTypeFactory()
-        cls.typeTwo = CircuitTypeFactory(id=1235)
+        cls.typeTwo = CircuitTypeFactory()
         cls.typeTwo.save()
 
         cls.query = Template('''

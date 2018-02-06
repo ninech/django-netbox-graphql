@@ -10,6 +10,6 @@ class CircuitTypeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = CircuitType
 
-    id = 1234
+    id = factory.Sequence(lambda n: n)
     name = factory.LazyAttribute(lambda o: 'Type %i' % o.id)
     slug = factory.LazyAttribute(lambda o: 'ct%i' % o.id)
