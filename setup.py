@@ -45,6 +45,7 @@ setup(
     extras_require={
         'test': [
             'snapshottest',
+            'factory_boy'
         ]
     },
 )
