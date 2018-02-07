@@ -15,7 +15,7 @@ from graphql_relay.node.node import from_global_id, to_global_id
 from circuits.models import Provider
 
 
-class ProviderCreateTestCase(TestCase):
+class CreateTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.query = '''
@@ -54,7 +54,7 @@ class ProviderCreateTestCase(TestCase):
         self.assertEquals(Provider.objects.all().count(), oldCount + 1)
 
 
-class ProviderQueryMultipleTestCase(TestCase):
+class QueryMultipleTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.first = ProviderFactory()
@@ -71,16 +71,16 @@ class ProviderQueryMultipleTestCase(TestCase):
         }}
         '''
 
-    def test_querying_all_types_returns_no_error(self):
+    def test_querying_all_returns_no_error(self):
         result = schema.execute(self.query)
         assert not result.errors
 
-    def test_querying_all_types_returns_two_results(self):
+    def test_querying_all_returns_two_results(self):
         result = schema.execute(self.query)
         self.assertEquals(len(result.data['providers']['edges']), 2)
 
 
-class ProviderQuerySingleTestCase(TestCase):
+class QuerySingleTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.first = ProviderFactory()
@@ -126,7 +126,7 @@ class ProviderQuerySingleTestCase(TestCase):
         self.assertEquals(result.data, expected)
 
 
-class ProviderUpdateTestCase(TestCase):
+class UpdateTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.first = ProviderFactory()
@@ -165,7 +165,7 @@ class ProviderUpdateTestCase(TestCase):
         self.assertEquals(provider.portal_url, 'http://github.com/')
 
 
-class ProviderDeleteTestCase(TestCase):
+class DeleteTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.first = ProviderFactory()

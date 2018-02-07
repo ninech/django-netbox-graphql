@@ -1,4 +1,3 @@
-
 from string import Template
 
 from graphene.test import Client
@@ -8,7 +7,6 @@ from tenancy.models import Tenant
 
 from netbox_graphql.schema import schema
 
-from netbox_graphql.tests.data import *
 from netbox_graphql.tests.utils import obj_to_global_id
 from netbox_graphql.tests.factories.tenant_factories import TenantFactory, TenantGroupFactory
 
@@ -69,7 +67,7 @@ class QueryMultipleTestCase(TestCase):
         }
         ''').substitute(id=obj_to_global_id(cls.first))
 
-    def test_querying_all_types_returns_no_error(self):
+    def test_querying_all_returns_no_error(self):
         result = schema.execute(self.query)
         assert not result.errors
 
@@ -98,15 +96,15 @@ class QuerySingleTestCase(TestCase):
         }
         ''').substitute(id=obj_to_global_id(cls.first))
 
-    def test_querying_single_type_returns_no_error(self):
+    def test_querying_single_returns_no_error(self):
         result = schema.execute(self.query)
         assert not result.errors
 
-    def test_querying_single_type_returns_result(self):
+    def test_querying_single_returns_result(self):
         result = schema.execute(self.query)
         self.assertEquals(len(result.data['tenants']['edges']), 1)
 
-    def test_querying_single_type_returns_expected_result(self):
+    def test_querying_single_returns_expected_result(self):
         result = schema.execute(self.query)
         expected = {'tenants':
                     {'edges': [

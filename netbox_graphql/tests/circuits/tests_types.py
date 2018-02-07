@@ -12,7 +12,7 @@ from netbox_graphql.tests.utils import obj_to_global_id
 from netbox_graphql.tests.factories.circuit_factories import CircuitTypeFactory
 
 
-class CircuitTypeCreateTestCase(TestCase):
+class CreateTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.query = '''
@@ -43,7 +43,7 @@ class CircuitTypeCreateTestCase(TestCase):
         self.assertEquals(CircuitType.objects.all().count(), oldCount + 1)
 
 
-class CircuitTypeQueryMultipleTestCase(TestCase):
+class QueryMultipleTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.first = CircuitTypeFactory()
@@ -60,16 +60,16 @@ class CircuitTypeQueryMultipleTestCase(TestCase):
         }}
         '''
 
-    def test_querying_all_types_returns_no_error(self):
+    def test_querying_all_returns_no_error(self):
         result = schema.execute(self.query)
         assert not result.errors
 
-    def test_querying_all_types_returns_two_results(self):
+    def test_querying_all_returns_two_results(self):
         result = schema.execute(self.query)
         self.assertEquals(len(result.data['circuitTypes']['edges']), 2)
 
 
-class CircuitTypeQuerySingleTestCase(TestCase):
+class QuerySingleTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.first = CircuitTypeFactory()
@@ -88,15 +88,15 @@ class CircuitTypeQuerySingleTestCase(TestCase):
         }
         ''').substitute(id=obj_to_global_id(cls.first))
 
-    def test_querying_single_type_returns_no_error(self):
+    def test_querying_single_returns_no_error(self):
         result = schema.execute(self.query)
         assert not result.errors
 
-    def test_querying_single_type_returns_result(self):
+    def test_querying_single_returns_result(self):
         result = schema.execute(self.query)
         self.assertEquals(len(result.data['circuitTypes']['edges']), 1)
 
-    def test_querying_single_type_returns_expected_result(self):
+    def test_querying_single_returns_expected_result(self):
         result = schema.execute(self.query)
         expected = {'circuitTypes':
                     {'edges': [
@@ -106,7 +106,7 @@ class CircuitTypeQuerySingleTestCase(TestCase):
         self.assertEquals(result.data, expected)
 
 
-class CircuitTypeUpdateTestCase(TestCase):
+class UpdateTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.first = CircuitTypeFactory()
@@ -143,7 +143,7 @@ class CircuitTypeUpdateTestCase(TestCase):
         self.assertEquals(circuit_type.slug, 'nsl1')
 
 
-class CircuitTypeDeleteTestCase(TestCase):
+class DeleteTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.first = CircuitTypeFactory()

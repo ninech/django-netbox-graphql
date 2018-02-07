@@ -84,11 +84,11 @@ class QueryMultipleTestCase(TestCase):
         }
         '''
 
-    def test_querying_all_types_returns_no_error(self):
+    def test_querying_all_returns_no_error(self):
         result = schema.execute(self.query)
         assert not result.errors
 
-    def test_querying_all_types_returns_two_results(self):
+    def test_querying_all_returns_two_results(self):
         result = schema.execute(self.query)
         self.assertEquals(len(result.data['circuitTerminations']['edges']), 2)
 
