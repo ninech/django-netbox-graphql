@@ -1,85 +1,192 @@
+from string import Template
 
 from graphene.test import Client
-from snapshottest import TestCase
-from netbox_graphql.tests.data import *
+from django.test import TestCase
+
+from virtualization.models import VirtualMachine
+
 from netbox_graphql.schema import schema
-from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
+
+from netbox_graphql.tests.utils import obj_to_global_id
+from netbox_graphql.tests.factories.virtualization_factories import VirtualMachineFactory, ClusterFactory
+from netbox_graphql.tests.factories.tenant_factories import TenantFactory
+from netbox_graphql.tests.factories.dcim_factories import PlatformFactory
+from netbox_graphql.tests.factories.ipam_factories import IPAddressFactory
 
 
-
-
-class VirtualMachineTestCase(TestCase):
-    def test_creating_new_vm(self):
-        initialize_cluster('21')
-        query = '''
+class CreateTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.cluster = ClusterFactory()
+        cls.tenant = TenantFactory()
+        cls.platform = PlatformFactory()
+        cls.ipv4 = IPAddressFactory(family=4)
+        cls.query = Template('''
             mutation{
-              newVirtualMachine(input: { cluster:"Q2x1c3Rlck5vZGU6MjE=", name: "virtual machine", status: 1, vcpus: 12, memory:126, disk: 256, comments: "test" }) {
-                virtualMachine{
-                    cluster {
-                      id
-                    }
+              newVirtualMachine(input: { cluster: "$clusterId", tenant: "$tenantId", 
+                                         platform: "$platformId", primaryIp4: "$ipv4Id",
+                                         name: "New Name", status: 1, vcpus: 12, 
+                                         memory:126, disk: 256 }) {
+                virtualMachine {
                     name
-                    status
-                    vcpus
-                    memory
-                    disk
-                    comments
+                    cluster {
+                      name
+                    }
+                    tenant {
+                      name
+                    }
+                    platform {
+                      name
+                    }
                 }
               }
             }
-            '''
-        expected = {'newVirtualMachine': {'virtualMachine': {'cluster': {'id': 'Q2x1c3Rlck5vZGU6MjE='},
-                                                             'name': 'virtual machine', 'status': 'A_1', 'vcpus': 12, 'memory': 126, 'disk': 256, 'comments': 'test'}}}
+            ''').substitute(clusterId=obj_to_global_id(cls.cluster),
+                            tenantId=obj_to_global_id(cls.tenant),
+                            platformId=obj_to_global_id(cls.platform),
+                            ipv4Id=obj_to_global_id(cls.ipv4))
 
-        result = schema.execute(query)
+    def test_creating_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
 
-    def test_correct_fetch_of_vm(self):
-        initialize_virtual_machine('22')
-        query = '''
+    def test_creating_returns_data(self):
+        expected = {'newVirtualMachine':
+                    {'virtualMachine': {'name': 'New Name',
+                                        'cluster': {'name': self.cluster.name},
+                                        'tenant': {'name': self.tenant.name},
+                                        'platform': {'name': self.platform.name}, }}}
+
+        result = schema.execute(self.query)
+        self.assertEquals(result.data, expected)
+
+    def test_creating_creates_it(self):
+        oldCount = VirtualMachine.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(VirtualMachine.objects.all().count(), oldCount + 1)
+
+
+class QueryMultipleTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = VirtualMachineFactory()
+        cls.second = VirtualMachineFactory()
+        cls.query = '''
         {
-          virtualMachines(id: "VmlydHVhbE1hY2hpbmVOb2RlOjIy") {
+          virtualMachines {
             edges {
               node {
                 id
-                cluster {
-                  id
-                }
-                name
-                status
-                vcpus
-                memory
-                disk
-                comments
               }
             }
           }
         }
         '''
-        expected = {'virtualMachines': {'edges': [{'node': {'id': 'VmlydHVhbE1hY2hpbmVOb2RlOjIy', 'cluster': {
-            'id': 'Q2x1c3Rlck5vZGU6MjI='}, 'name': 'VM22', 'status': 'A_1', 'vcpus': 128, 'memory': 256, 'disk': 512, 'comments': 'txt'}}]}}
 
-        result = schema.execute(query)
+    def test_querying_all_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
 
-    def test_delete_virtual_machine(self):
-        initialize_virtual_machine('24')
-        query = '''
-        mutation{
-          deleteVirtualMachine(input: { id: "VmlydHVhbE1hY2hpbmVOb2RlOjI0" }) {
-            virtualMachine{
-                id
+    def test_querying_all_returns_two_results(self):
+        result = schema.execute(self.query)
+        self.assertEquals(len(result.data['virtualMachines']['edges']), 2)
+
+
+class QuerySingleTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = VirtualMachineFactory()
+        cls.query = Template('''
+        {
+          virtualMachines(id: "$id") {
+            edges {
+              node {
                 name
-                status
+              }
             }
           }
         }
-        '''
-        expected = {'deleteVirtualMachine': {'virtualMachine': {
-            'id': 'VmlydHVhbE1hY2hpbmVOb2RlOk5vbmU=', 'name': 'VM24', 'status': 'A_1'}}}
+        ''').substitute(id=obj_to_global_id(cls.first))
 
-        result = schema.execute(query)
+    def test_querying_single_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
+
+    def test_querying_single_returns_result(self):
+        result = schema.execute(self.query)
+        self.assertEquals(len(result.data['virtualMachines']['edges']), 1)
+
+    def test_querying_single_returns_expected_result(self):
+        result = schema.execute(self.query)
+        expected = {'virtualMachines':
+                    {'edges': [
+                        {'node': {'name': self.first.name}}
+                    ]}
+                    }
+        self.assertEquals(result.data, expected)
+
+
+class UpdateTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = VirtualMachineFactory()
+        cls.tenant = TenantFactory()
+        cls.query = Template('''
+        mutation {
+          updateVirtualMachine(input: {id:"$id", tenant: "$tenantId", name: "New Name"}) {
+            virtualMachine {
+              name
+              tenant {
+                  name
+              }
+            }
+          }
+        }
+        ''').substitute(id=obj_to_global_id(cls.first),
+                        tenantId=obj_to_global_id(cls.tenant))
+
+    def test_updating_returns_no_error(self):
+        result = schema.execute(self.query)
+        assert not result.errors
+
+    def test_updating_doesnt_change_count(self):
+        oldCount = VirtualMachine.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(VirtualMachine.objects.all().count(), oldCount)
+
+    def test_updating_returns_updated_data(self):
+        expected = {'updateVirtualMachine':
+                    {'virtualMachine': {'name': 'New Name',
+                                        'tenant': {'name': self.tenant.name}}}}
+        result = schema.execute(self.query)
+        self.assertEquals(result.data, expected)
+
+    def test_updating_alters_data(self):
+        schema.execute(self.query)
+        virtual_machine = VirtualMachine.objects.get(id=self.first.id)
+        self.assertEquals(virtual_machine.name, 'New Name')
+        self.assertEquals(virtual_machine.tenant.name, self.tenant.name)
+
+
+class DeleteTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = VirtualMachineFactory()
+        cls.query = Template('''
+        mutation{
+          deleteVirtualMachine(input: { id: "$id" }) {
+            virtualMachine{
+                id
+            }
+          }
+        }
+        ''').substitute(id=obj_to_global_id(cls.first))
+
+    def test_deleting_returns_no_error(self):
+        result = schema.execute(self.query)
+        assert not result.errors
+
+    def test_deleting_removes_a_type(self):
+        oldCount = VirtualMachine.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(VirtualMachine.objects.all().count(), oldCount - 1)

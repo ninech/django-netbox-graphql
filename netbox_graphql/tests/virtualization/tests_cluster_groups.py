@@ -3,60 +3,53 @@ from string import Template
 from graphene.test import Client
 from django.test import TestCase
 
-from virtualization.models import Cluster
+from virtualization.models import ClusterGroup
 
 from netbox_graphql.schema import schema
 
 from netbox_graphql.tests.utils import obj_to_global_id
-from netbox_graphql.tests.factories.virtualization_factories import ClusterFactory, ClusterTypeFactory, ClusterGroupFactory
+from netbox_graphql.tests.factories.virtualization_factories import ClusterGroupFactory
 
 
 class CreateTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.type = ClusterTypeFactory()
-        cls.group = ClusterGroupFactory()
-        cls.query = Template('''
+        cls.query = '''
             mutation{
-              newCluster(input: { name: "New Cluster", type: "$typeId", group: "$groupId"}) {
-                cluster{
+              newClusterGroup(input: { name: "New Name", slug: "nsl1"}) {
+                clusterGroup{
                   name
-                  type {
-                    name
-                  }
+                  slug
                 }
               }
             }
-            ''').substitute(typeId=obj_to_global_id(cls.type),
-                            groupId=obj_to_global_id(cls.group))
+            '''
 
     def test_creating_returns_no_error(self):
         result = schema.execute(self.query)
         assert not result.errors
 
     def test_creating_returns_data(self):
-        expected = {'newCluster':
-                    {'cluster': {'name': 'New Cluster',
-                                 'type': {'name': self.type.name}}}}
+        expected = {'newClusterGroup':
+                    {'clusterGroup': {'name': 'New Name', 'slug': 'nsl1'}}}
 
         result = schema.execute(self.query)
         self.assertEquals(result.data, expected)
 
     def test_creating_creates_it(self):
-        oldCount = Cluster.objects.all().count()
+        oldCount = ClusterGroup.objects.all().count()
         schema.execute(self.query)
-        self.assertEquals(Cluster.objects.all().count(), oldCount + 1)
+        self.assertEquals(ClusterGroup.objects.all().count(), oldCount + 1)
 
 
 class QueryMultipleTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.first = ClusterFactory()
-        cls.second = ClusterFactory(type=cls.first.type)
-        cls.third = ClusterFactory()
-        cls.query = Template('''
+        cls.first = ClusterGroupFactory()
+        cls.second = ClusterGroupFactory()
+        cls.query = '''
         {
-          clusters {
+          clusterGroups {
             edges {
               node {
                 id
@@ -64,37 +57,33 @@ class QueryMultipleTestCase(TestCase):
             }
           }
         }
-        ''').substitute(id=obj_to_global_id(cls.first))
+        '''
 
     def test_querying_all_returns_no_error(self):
         result = schema.execute(self.query)
         assert not result.errors
 
-    def test_querying_all_types_returns_three_results(self):
+    def test_querying_all_returns_two_results(self):
         result = schema.execute(self.query)
-        self.assertEquals(len(result.data['clusters']['edges']), 3)
+        self.assertEquals(len(result.data['clusterGroups']['edges']), 2)
 
 
 class QuerySingleTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.first = ClusterFactory()
-        cls.second = ClusterFactory(type=cls.first.type)
-        cls.third = ClusterFactory()
+        cls.first = ClusterGroupFactory()
+        cls.second = ClusterGroupFactory()
         cls.query = Template('''
         {
-          clusters(id: "$id") {
+          clusterGroups(id: "$id") {
             edges {
               node {
                 name
-                type {
-                    name
-                }
               }
             }
           }
         }
-        ''').substitute(id=obj_to_global_id(cls.third))
+        ''').substitute(id=obj_to_global_id(cls.first))
 
     def test_querying_single_returns_no_error(self):
         result = schema.execute(self.query)
@@ -102,14 +91,13 @@ class QuerySingleTestCase(TestCase):
 
     def test_querying_single_returns_result(self):
         result = schema.execute(self.query)
-        self.assertEquals(len(result.data['clusters']['edges']), 1)
+        self.assertEquals(len(result.data['clusterGroups']['edges']), 1)
 
     def test_querying_single_returns_expected_result(self):
         result = schema.execute(self.query)
-        expected = {'clusters':
+        expected = {'clusterGroups':
                     {'edges': [
-                        {'node': {'name': self.third.name,
-                                  'type': {'name': self.third.type.name}}}
+                        {'node': {'name': self.first.name}}
                     ]}}
         self.assertEquals(result.data, expected)
 
@@ -117,52 +105,48 @@ class QuerySingleTestCase(TestCase):
 class UpdateTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.first = ClusterFactory()
-        cls.type = ClusterTypeFactory()
+        cls.first = ClusterGroupFactory()
         cls.query = Template('''
         mutation{
-          updateCluster(input: { id:"$id", name: "New Name", type: "$typeId"}) {
-            cluster{
+          updateClusterGroup(input: { id: "$id", name: "New Name", slug: "nsl1"}) {
+            clusterGroup {
               name
-              type {
-                name
-              }
+              slug
             }
           }
         }
-        ''').substitute(id=obj_to_global_id(cls.first), typeId=obj_to_global_id(cls.type))
+        ''').substitute(id=obj_to_global_id(cls.first))
 
     def test_updating_returns_no_error(self):
         result = schema.execute(self.query)
         assert not result.errors
 
     def test_updating_doesnt_change_count(self):
-        oldCount = Cluster.objects.all().count()
+        oldCount = ClusterGroup.objects.all().count()
         schema.execute(self.query)
-        self.assertEquals(Cluster.objects.all().count(), oldCount)
+        self.assertEquals(ClusterGroup.objects.all().count(), oldCount)
 
     def test_updating_returns_updated_data(self):
-        expected = {'updateCluster':
-                    {'cluster': {'name': 'New Name',
-                                 'type': {'name': self.type.name}}}}
+        expected = {'updateClusterGroup':
+                    {'clusterGroup': {'name': 'New Name', 'slug': 'nsl1'}}}
         result = schema.execute(self.query)
         self.assertEquals(result.data, expected)
 
     def test_updating_alters_data(self):
         schema.execute(self.query)
-        cluster = Cluster.objects.get(id=self.first.id)
-        self.assertEquals(cluster.name, 'New Name')
-        self.assertEquals(cluster.type, self.type)
+        circuit_type = ClusterGroup.objects.get(id=self.first.id)
+        self.assertEquals(circuit_type.name, 'New Name')
+        self.assertEquals(circuit_type.slug, 'nsl1')
 
 
 class DeleteTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.first = ClusterFactory()
+        cls.first = ClusterGroupFactory()
         cls.query = Template('''
-        mutation {
-          deleteCluster(input: {id: "$id"}) {
-            cluster {
+        mutation{
+          deleteClusterGroup(input: { id: "$id"}) {
+            clusterGroup{
               id
             }
           }
@@ -174,6 +158,6 @@ class DeleteTestCase(TestCase):
         assert not result.errors
 
     def test_deleting_removes_a_type(self):
-        oldCount = Cluster.objects.all().count()
+        oldCount = ClusterGroup.objects.all().count()
         schema.execute(self.query)
-        self.assertEquals(Cluster.objects.all().count(), oldCount - 1)
+        self.assertEquals(ClusterGroup.objects.all().count(), oldCount - 1)
