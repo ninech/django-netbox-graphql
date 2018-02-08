@@ -150,7 +150,8 @@ The simplest way to make package and deploy it is with using `twine`::
 
 Tests
 -----
-Run unit tests::    
+Run unit tests::
+
     docker-compose run netbox ./manage.py test # runs all tests
     docker-compose run netbox ./manage.py test netbox_graphql/ # runs only netbox_graphql module tests
 
