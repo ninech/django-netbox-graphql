@@ -120,9 +120,9 @@ class UpdateTestCase(TestCase):
         assert not result.errors
 
     def test_updating_doesnt_change_count(self):
-        oldCount = CircuitType.objects.all().count()
+        oldCount = TenantGroup.objects.all().count()
         schema.execute(self.query)
-        self.assertEquals(CircuitType.objects.all().count(), oldCount)
+        self.assertEquals(TenantGroup.objects.all().count(), oldCount)
 
     def test_updating_returns_updated_data(self):
         expected = {'updateTenantGroup':
