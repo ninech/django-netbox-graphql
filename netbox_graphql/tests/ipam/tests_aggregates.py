@@ -9,7 +9,6 @@ from ipam.models import Aggregate
 
 from netbox_graphql.schema import schema
 
-from netbox_graphql.tests.data import *
 from netbox_graphql.tests.utils import obj_to_global_id
 from netbox_graphql.tests.factories.ipam_factories import AggreagateFactory, RIRFactory
 
