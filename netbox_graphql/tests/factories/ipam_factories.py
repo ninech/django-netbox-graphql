@@ -26,7 +26,7 @@ class RIRFactory(factory.django.DjangoModelFactory):
 
     id = factory.Sequence(lambda n: n)
     name = factory.LazyAttribute(lambda o: 'RIR %i' % o.id)
-    rd = factory.LazyAttribute(lambda o: 'rir%i' % o.id)
+    slug = factory.LazyAttribute(lambda o: 'rir%i' % o.id)
     is_private = False
 
 
@@ -34,8 +34,8 @@ class AggreagateFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Aggregate
 
-    # family =
-    # prefix =
+    family = 4
+    prefix = netaddr.IPNetwork('10.0.0.0/12')
     rir = factory.SubFactory(RIRFactory)
     date_added = datetime.date(2008, 1, 1)
     description = "I'm an Aggregate!"
@@ -60,7 +60,7 @@ class IPAddressFactory(factory.django.DjangoModelFactory):
     vrf = factory.SubFactory(VRFFactory)
     tenant = factory.SubFactory(tenant_factories.TenantFactory)
     # status =
-    role = 1
+    # role =
     # interface =
     # nat_inside =
     description = "I'm an IPAddress!"
@@ -83,6 +83,7 @@ class VLANFactory(factory.django.DjangoModelFactory):
     id = factory.Sequence(lambda n: n)
     site = factory.SubFactory(dcim_factories.SiteFactory)
     group = factory.SubFactory(VLANGroupFactory)
+    site = factory.LazyAttribute(lambda o: o.group.site)
     vid = 1
     name = factory.LazyAttribute(lambda o: 'VLAN %i' % o.id)
     tenant = factory.SubFactory(tenant_factories.TenantFactory)
@@ -96,7 +97,7 @@ class PrefixFactory(factory.django.DjangoModelFactory):
         model = Prefix
 
     # family =
-    # prefix =
+    prefix = netaddr.IPNetwork('192.0.2.0/24')
     site = factory.SubFactory(dcim_factories.SiteFactory)
     vrf = factory.SubFactory(VRFFactory)
     tenant = factory.SubFactory(tenant_factories.TenantFactory)
