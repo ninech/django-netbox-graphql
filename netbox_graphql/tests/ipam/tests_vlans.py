@@ -1,53 +1,98 @@
+from string import Template
 
 from graphene.test import Client
-from snapshottest import TestCase
-from netbox_graphql.tests.data import *
+from django.test import TestCase
+
+from ipam.models import VLAN
+
 from netbox_graphql.schema import schema
-from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
+
+from netbox_graphql.tests.utils import obj_to_global_id
+from netbox_graphql.tests.factories.ipam_factories import VLANFactory, RoleFactory
+from netbox_graphql.tests.factories.tenant_factories import TenantFactory
 
 
+class CreateTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.tenant = TenantFactory()
+        cls.role = RoleFactory()
+        cls.query = Template('''
+            mutation{
+                newVlan(input: { tenant: "$tenantId", role: "$roleId", vid: 2, name: "New Vlan"}) {
+                    vlan{
+                        name
+                        vid
+                        tenant{
+                            name
+                        }
+                        role{
+                            name
+                        }
+                    }
+                }
+            }
+            ''').substitute(tenantId=obj_to_global_id(cls.tenant),
+                            roleId=obj_to_global_id(cls.role))
+
+    def test_creating_returns_no_error(self):
+        result = schema.execute(self.query)
+        assert not result.errors
+
+    def test_creating_returns_data(self):
+        expected = {'newVlan':
+                    {'vlan': {'name': 'New Vlan',
+                              'vid': 2,
+                              'tenant': {'name': self.tenant.name},
+                              'role': {'name': self.role.name}
+                              }}}
+
+        result = schema.execute(self.query)
+        self.assertEquals(result.data, expected)
+
+    def test_creating_creates_it(self):
+        oldCount = VLAN.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(VLAN.objects.all().count(), oldCount + 1)
 
 
-class VlANTestCase(TestCase):
-    def test_creating_new_vlan(self):
-        initialize_vlan_role('189')
-        initialize_tenant('189')
-        query = '''
-        mutation{
-          newVlan(input: { tenant: "VGVuYW50Tm9kZToxODk=", role: "Um9sZU5vZGU6MTg5", vid: 2, name: "vlan2", description: "test"}) {
-            vlan{
-              id
-              name
-              tenant{
-                name
+class QueryMultipleTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = VLANFactory()
+        cls.second = VLANFactory()
+        cls.query = '''
+        {
+          vlans {
+            edges {
+              node {
+                id
               }
-              role{
-                name
-              }
-              vid
-              name
-              description
             }
           }
         }
         '''
-        expected = {'newVlan': {'vlan': {'id': 'VkxBTk5vZGU6MQ==', 'name': 'vlan2', 'tenant': {
-            'name': 'Tenant 189'}, 'role': {'name': 'VlanRole189'}, 'vid': 2, 'description': 'test'}}}
 
-        result = schema.execute(query)
+    def test_querying_all_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
 
-    def test_correct_fetch_of_vlan(self):
-        initialize_vlan('188')
-        query = '''
+    def test_querying_all_returns_two_results(self):
+        result = schema.execute(self.query)
+        self.assertEquals(len(result.data['vlans']['edges']), 2)
+
+
+class QuerySingleTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = VLANFactory()
+        cls.second = VLANFactory()
+        cls.query = Template('''
         {
-          vlans(id: "VkxBTk5vZGU6MTg4") {
+          vlans(id: "$id") {
             edges {
               node {
-                id
                 name
-                description
                 vid
                 tenant {
                   name
@@ -59,49 +104,92 @@ class VlANTestCase(TestCase):
             }
           }
         }
-        '''
-        expected = {'vlans': {'edges': [{'node': {'id': 'VkxBTk5vZGU6MTg4', 'name': 'vlan188', 'description': 'desc', 'vid': 2, 'tenant': {
-            'name': 'Tenant 188'}, 'role': {'name': 'VlanRole188'}}}]}}
+        ''').substitute(id=obj_to_global_id(cls.second))
 
-        result = schema.execute(query)
+    def test_querying_single_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
 
-    def test_update_vlan(self):
-        initialize_vlan('191')
-        query = '''
+    def test_querying_single_returns_result(self):
+        result = schema.execute(self.query)
+        self.assertEquals(len(result.data['vlans']['edges']), 1)
+
+    def test_querying_single_returns_expected_result(self):
+        result = schema.execute(self.query)
+        expected = {'vlans':
+                    {'edges': [
+                        {'node': {'name': self.second.name,
+                                  'vid': self.second.vid,
+                                  'tenant': {'name': self.second.tenant.name},
+                                  'role': {'name': self.second.role.name}}}
+                    ]}}
+        self.assertEquals(result.data, expected)
+
+
+class UpdateTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = VLANFactory()
+        cls.tenant = TenantFactory()
+        cls.query = Template('''
         mutation{
-          updateVlan(input: { id:"VkxBTk5vZGU6MTkx", vid: 3, name: "vlanA", description: "desc"}) {
+          updateVlan(input: { id: "$id", vid: 10, name: "New Name", tenant: "$tenantId"}) {
             vlan{
-              id
               name
               vid
-              name
-              description
+              tenant {
+                name
+              }
             }
           }
         }
-        '''
-        expected = {'updateVlan': {'vlan': {'id': 'VkxBTk5vZGU6MTkx',
-                                            'name': 'vlanA', 'vid': 3, 'description': 'desc'}}}
+        ''').substitute(id=obj_to_global_id(cls.first),
+                        tenantId=obj_to_global_id(cls.tenant))
 
-        result = schema.execute(query)
+    def test_updating_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
 
-    def test_delete_vlan(self):
-        initialize_vlan('183')
-        query = '''
+    def test_updating_doesnt_change_count(self):
+        oldCount = VLAN.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(VLAN.objects.all().count(), oldCount)
+
+    def test_updating_returns_updated_data(self):
+        expected = {'updateVlan':
+                    {'vlan': {'name': 'New Name',
+                              'vid': 10,
+                              'tenant': {'name': self.tenant.name}}}}
+        result = schema.execute(self.query)
+        self.assertEquals(result.data, expected)
+
+    def test_updating_alters_data(self):
+        schema.execute(self.query)
+        vlan = VLAN.objects.get(id=self.first.id)
+        self.assertEquals(vlan.name, 'New Name')
+        self.assertEquals(vlan.vid, 10)
+        self.assertEquals(vlan.tenant.name, self.tenant.name)
+
+
+class DeleteTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = VLANFactory()
+        cls.query = Template('''
         mutation{
-          deleteVlan(input: { id:"VkxBTk5vZGU6MTgz"}) {
+          deleteVlan(input: { id:"$id"}) {
             vlan{
               id
             }
           }
         }
-        '''
-        expected = {'deleteVlan': {'vlan': {'id': 'VkxBTk5vZGU6Tm9uZQ=='}}}
+        ''').substitute(id=obj_to_global_id(cls.first))
 
-        result = schema.execute(query)
+    def test_deleting_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
+
+    def test_deleting_removes_a_type(self):
+        oldCount = VLAN.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(VLAN.objects.all().count(), oldCount - 1)

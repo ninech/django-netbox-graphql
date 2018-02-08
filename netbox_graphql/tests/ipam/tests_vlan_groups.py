@@ -1,45 +1,90 @@
+from string import Template
 
 from graphene.test import Client
-from snapshottest import TestCase
-from netbox_graphql.tests.data import *
+from django.test import TestCase
+
+from ipam.models import VLANGroup
+
 from netbox_graphql.schema import schema
-from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
+
+from netbox_graphql.tests.utils import obj_to_global_id
+from netbox_graphql.tests.factories.ipam_factories import VLANGroupFactory
+from netbox_graphql.tests.factories.dcim_factories import SiteFactory
 
 
+class CreateTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.site = SiteFactory()
+        cls.query = Template('''
+            mutation{
+                newVlanGroup(input: { name: "VLANname", slug: "v1", site: "$siteId"}) {
+                    vlanGroup{
+                        name
+                        slug
+                        site {
+                            name
+                        }
+                    }
+                }
+            }
+            ''').substitute(siteId=obj_to_global_id(cls.site))
+
+    def test_creating_returns_no_error(self):
+        result = schema.execute(self.query)
+        assert not result.errors
+
+    def test_creating_returns_data(self):
+        expected = {'newVlanGroup':
+                    {'vlanGroup': {'name': 'VLANname',
+                                   'slug': 'v1',
+                                   'site': {'name': self.site.name}}}}
+
+        result = schema.execute(self.query)
+        self.assertEquals(result.data, expected)
+
+    def test_creating_creates_it(self):
+        oldCount = VLANGroup.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(VLANGroup.objects.all().count(), oldCount + 1)
 
 
-class VlANGroupTestCase(TestCase):
-    def test_creating_new_vlan_group(self):
-        initialize_site('164')
-        query = '''
-        mutation{
-          newVlanGroup(input: { name: "VlanRole 1", slug: "vlanrole-1", site: "U2l0ZU5vZGU6MTY0"}) {
-            vlanGroup{
-              id
-              name
-              slug
-              site {
-                name
+class QueryMultipleTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = VLANGroupFactory()
+        cls.second = VLANGroupFactory()
+        cls.query = '''
+        {
+          vlanGroups {
+            edges {
+              node {
+                id
               }
             }
           }
         }
         '''
-        expected = {'newVlanGroup': {'vlanGroup': {'id': 'VkxBTkdyb3VwTm9kZTox',
-                                                   'name': 'VlanRole 1', 'slug': 'vlanrole-1', 'site': {'name': 'Site Name 164'}}}}
 
-        result = schema.execute(query)
+    def test_querying_all_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
 
-    def test_correct_fetch_of_vlan_group(self):
-        initialize_vlan_group('165')
-        query = '''
+    def test_querying_all_returns_two_results(self):
+        result = schema.execute(self.query)
+        self.assertEquals(len(result.data['vlanGroups']['edges']), 2)
+
+
+class QuerySingleTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = VLANGroupFactory()
+        cls.second = VLANGroupFactory()
+        cls.query = Template('''
         {
-          vlanGroups(id: "VkxBTkdyb3VwTm9kZToxNjU=") {
+          vlanGroups(id: "$id") {
             edges {
               node {
-                id
                 name
                 slug
                 site {
@@ -49,21 +94,36 @@ class VlANGroupTestCase(TestCase):
             }
           }
         }
-        '''
-        expected = {'vlanGroups': {'edges': [{'node': {'id': 'VkxBTkdyb3VwTm9kZToxNjU=',
-                                                       'name': 'VlanGroup165', 'slug': 'vlangroup-165', 'site': {'name': 'Site Name 165'}}}]}}
+        ''').substitute(id=obj_to_global_id(cls.first))
 
-        result = schema.execute(query)
+    def test_querying_single_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
 
-    def test_update_vlan_group(self):
-        initialize_vlan_group('169')
-        query = '''
+    def test_querying_single_returns_result(self):
+        result = schema.execute(self.query)
+        self.assertEquals(len(result.data['vlanGroups']['edges']), 1)
+
+    def test_querying_single_returns_expected_result(self):
+        result = schema.execute(self.query)
+        expected = {'vlanGroups':
+                    {'edges': [
+                        {'node': {'name': self.first.name,
+                                  'slug': self.first.slug,
+                                  'site': {'name': self.first.site.name}}}
+                    ]}}
+        self.assertEquals(result.data, expected)
+
+
+class UpdateTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = VLANGroupFactory()
+        cls.site = SiteFactory()
+        cls.query = Template('''
         mutation{
-          updateVlanGroup(input: { id:"VkxBTkdyb3VwTm9kZToxNjk=", name: "VlanRole A", slug: "vlanrole-A"}) {
+          updateVlanGroup(input: { id:"$id", name: "New Name", slug: "nsl1", site: "$siteId"}) {
             vlanGroup{
-              id
               name
               slug
               site {
@@ -72,33 +132,53 @@ class VlANGroupTestCase(TestCase):
             }
           }
         }
-        '''
-        expected = {'updateVlanGroup': {'vlanGroup': {'id': 'VkxBTkdyb3VwTm9kZToxNjk=',
-                                                      'name': 'VlanRole A', 'slug': 'vlanrole-A', 'site': {'name': 'Site Name 169'}}}}
+        ''').substitute(id=obj_to_global_id(cls.first),
+                        siteId=obj_to_global_id(cls.site))
 
-        result = schema.execute(query)
+    def test_updating_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
 
-    def test_delete_vlan_group(self):
-        initialize_vlan_group('168')
-        query = '''
+    def test_updating_doesnt_change_count(self):
+        oldCount = VLANGroup.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(VLANGroup.objects.all().count(), oldCount)
+
+    def test_updating_returns_updated_data(self):
+        expected = {'updateVlanGroup':
+                    {'vlanGroup': {'name': 'New Name',
+                                   'slug': 'nsl1',
+                                   'site': {'name': self.site.name}}}}
+        result = schema.execute(self.query)
+        self.assertEquals(result.data, expected)
+
+    def test_updating_alters_data(self):
+        schema.execute(self.query)
+        vlan_group = VLANGroup.objects.get(id=self.first.id)
+        self.assertEquals(vlan_group.name, 'New Name')
+        self.assertEquals(vlan_group.slug, 'nsl1')
+        self.assertEquals(vlan_group.site.name, self.site.name)
+
+
+class DeleteTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = VLANGroupFactory()
+        cls.query = Template('''
         mutation{
-          deleteVlanGroup(input: { id:"VkxBTkdyb3VwTm9kZToxNjg="}) {
+          deleteVlanGroup(input: { id:"$id"}) {
             vlanGroup{
               id
-              name
-              slug
-              site {
-                name
-              }
             }
           }
         }
-        '''
-        expected = {'deleteVlanGroup': {'vlanGroup': {'id': 'VkxBTkdyb3VwTm9kZTpOb25l',
-                                                      'name': 'VlanGroup168', 'slug': 'vlangroup-168', 'site': {'name': 'Site Name 168'}}}}
+        ''').substitute(id=obj_to_global_id(cls.first))
 
-        result = schema.execute(query)
+    def test_deleting_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
+
+    def test_deleting_removes_a_type(self):
+        oldCount = VLANGroup.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(VLANGroup.objects.all().count(), oldCount - 1)

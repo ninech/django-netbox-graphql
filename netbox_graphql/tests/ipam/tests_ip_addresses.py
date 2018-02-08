@@ -1,15 +1,16 @@
+
 from string import Template
+import netaddr
 
 from graphene.test import Client
 from django.test import TestCase
 
-from ipam.models import Role
+from ipam.models import IPAddress
 
 from netbox_graphql.schema import schema
 
 from netbox_graphql.tests.utils import obj_to_global_id
-from netbox_graphql.tests.factories.ipam_factories import RoleFactory
-from netbox_graphql.tests.factories.dcim_factories import SiteFactory
+from netbox_graphql.tests.factories.ipam_factories import IPAddressFactory
 
 
 class CreateTestCase(TestCase):
@@ -17,50 +18,48 @@ class CreateTestCase(TestCase):
     def setUpTestData(cls):
         cls.query = '''
         mutation{
-          newVlanRole(input: { name: "New Name", slug: "nsl1", weight: 1001}) {
-            vlanRole{
-              name
-              slug
-              weight
+          newIpAddress(input: { address: "173.16.0.0", status: 3}) {
+            ipAddress{
+                family
+                address
+                status
             }
           }
         }
         '''
 
-    def test_creating_returns_no_error(self):
+    def test_creating_circuit_type_returns_no_error(self):
         result = schema.execute(self.query)
         assert not result.errors
 
-    def test_creating_returns_data(self):
-        expected = {'newVlanRole':
-                    {'vlanRole': {'name': 'New Name',
-                                  'slug': 'nsl1',
-                                  'weight': 1001}}}
+    def test_creating_circuit_type_returns_data(self):
+        expected = {'newIpAddress':
+                    {'ipAddress': {'family': 'A_4',
+                                   'address': '173.16.0.0/32',
+                                   'status': 'A_3'}}}
 
         result = schema.execute(self.query)
         self.assertEquals(result.data, expected)
 
-    def test_creating_creates_it(self):
-        oldCount = Role.objects.all().count()
+    def test_creating_circut_type_creates_it(self):
+        oldCount = IPAddress.objects.all().count()
         schema.execute(self.query)
-        self.assertEquals(Role.objects.all().count(), oldCount + 1)
+        self.assertEquals(IPAddress.objects.all().count(), oldCount + 1)
 
 
 class QueryMultipleTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.first = RoleFactory()
-        cls.second = RoleFactory()
+        cls.first = IPAddressFactory()
+        cls.second = IPAddressFactory()
         cls.query = '''
-        {
-          vlanRoles {
+        { ipAddress {
             edges {
-              node {
-                id
-              }
+                node {
+                    id
+                }
             }
-          }
-        }
+        }}
         '''
 
     def test_querying_all_returns_no_error(self):
@@ -69,25 +68,24 @@ class QueryMultipleTestCase(TestCase):
 
     def test_querying_all_returns_two_results(self):
         result = schema.execute(self.query)
-        self.assertEquals(len(result.data['vlanRoles']['edges']), 2)
+        self.assertEquals(len(result.data['ipAddress']['edges']), 2)
 
 
 class QuerySingleTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.first = RoleFactory()
-        cls.second = RoleFactory()
+        cls.first = IPAddressFactory()
+        cls.second = IPAddressFactory()
+
         cls.query = Template('''
-        {
-          vlanRoles(id: "$id") {
+        { ipAddress(id: "$id") {
             edges {
-              node {
-                name
-              }
+                node {
+                    address
+                }
             }
-          }
-        }
-        ''').substitute(id=obj_to_global_id(cls.second))
+        }}
+        ''').substitute(id=obj_to_global_id(cls.first))
 
     def test_querying_single_returns_no_error(self):
         result = schema.execute(self.query)
@@ -95,30 +93,30 @@ class QuerySingleTestCase(TestCase):
 
     def test_querying_single_returns_result(self):
         result = schema.execute(self.query)
-        self.assertEquals(len(result.data['vlanRoles']['edges']), 1)
+        self.assertEquals(len(result.data['ipAddress']['edges']), 1)
 
     def test_querying_single_returns_expected_result(self):
         result = schema.execute(self.query)
-        expected = {'vlanRoles':
+        expected = {'ipAddress':
                     {'edges': [
-                        {'node': {'name': self.second.name}}
-                    ]}}
+                        {'node': {'address': str(
+                            netaddr.IPNetwork(self.first.address))}}
+                    ]}
+                    }
         self.assertEquals(result.data, expected)
 
 
 class UpdateTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.first = RoleFactory()
+        cls.first = IPAddressFactory()
         cls.query = Template('''
         mutation{
-          updateVlanRole(input: {id: "$id", name: "New Name", slug: "nsl1", weight: 1}) {
-            vlanRole {
-              name
-              slug
-              weight
+            updateIpAddress(input: { id:"$id", address: "192.168.1.1"}) {
+                ipAddress{
+                    address
+                }
             }
-          }
         }
         ''').substitute(id=obj_to_global_id(cls.first))
 
@@ -127,38 +125,31 @@ class UpdateTestCase(TestCase):
         assert not result.errors
 
     def test_updating_doesnt_change_count(self):
-        oldCount = Role.objects.all().count()
+        oldCount = IPAddress.objects.all().count()
         schema.execute(self.query)
-        self.assertEquals(Role.objects.all().count(), oldCount)
+        self.assertEquals(IPAddress.objects.all().count(), oldCount)
 
     def test_updating_returns_updated_data(self):
-        expected = {'updateVlanRole':
-                    {'vlanRole': {'name': 'New Name',
-                                  'slug': 'nsl1',
-                                  'weight': 1}}}
+        expected = {'updateIpAddress':
+                    {'ipAddress': {'address': str(netaddr.IPNetwork('192.168.1.1'))}}}
         result = schema.execute(self.query)
         self.assertEquals(result.data, expected)
 
     def test_updating_alters_data(self):
         schema.execute(self.query)
-        role = Role.objects.get(id=self.first.id)
-        self.assertEquals(role.name, 'New Name')
-        self.assertEquals(role.slug, 'nsl1')
-        self.assertEquals(role.weight, 1)
+        ip_address = IPAddress.objects.get(id=self.first.id)
+        self.assertEquals(ip_address.address, netaddr.IPNetwork('192.168.1.1'))
 
 
 class DeleteTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.first = RoleFactory()
+        cls.first = IPAddressFactory()
         cls.query = Template('''
-        mutation{
-          deleteVlanRole(input: {id: "$id"}) {
-            vlanRole{
-              id
-              name
-              slug
-              weight
+        mutation {
+          deleteIpAddress(input: { id:"$id"}) {
+            ipAddress{
+                id
             }
           }
         }
@@ -169,6 +160,6 @@ class DeleteTestCase(TestCase):
         assert not result.errors
 
     def test_deleting_removes_a_type(self):
-        oldCount = Role.objects.all().count()
+        oldCount = IPAddress.objects.all().count()
         schema.execute(self.query)
-        self.assertEquals(Role.objects.all().count(), oldCount - 1)
+        self.assertEquals(IPAddress.objects.all().count(), oldCount - 1)
