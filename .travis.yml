@@ -1,0 +1,15 @@
+sudo: required
+language: python
+
+services:
+  - docker
+
+install:
+  - docker-compose build
+
+script:
+  - docker-compose run netbox ./manage.py test
+
+after_script:
+  - docker-compose down
+  
