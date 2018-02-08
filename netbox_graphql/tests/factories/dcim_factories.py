@@ -1,5 +1,5 @@
 import factory
-from . import tenant_factories, virtualization_factories
+from . import tenant_factories
 from dcim.models import Region, Site, Interface, DeviceRole, Platform
 
 
