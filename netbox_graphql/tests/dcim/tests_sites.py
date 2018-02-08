@@ -1,165 +1,185 @@
+from string import Template
 
 from graphene.test import Client
-from snapshottest import TestCase
-from netbox_graphql.tests.data import *
+from django.test import TestCase
+
+from dcim.models import Site
+
 from netbox_graphql.schema import schema
-from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
+
+from netbox_graphql.tests.utils import obj_to_global_id
+from netbox_graphql.tests.factories.dcim_factories import SiteFactory, RegionFactory
+from netbox_graphql.tests.factories.tenant_factories import TenantFactory
 
 
-
-
-class SiteTestCase(TestCase):
-    def test_creating_new_site(self):
-        initialize_region('18')
-        initialize_tenant('18')
-        query = '''
-        mutation{
-          newSite(input: { name:"Site 3", slug: "site3", region:"UmVnaW9uTm9kZToxOA==", tenant: "VGVuYW50Tm9kZToxOA==",
-           facility: "A", asn: 12, physicalAddress:"A1", shippingAddress: "A2", contactName: "Name",
-           contactPhone: "123",  contactEmail:"a@gmail.com", comments: "comments"}) {
-            site {
-            id
-            name
-            slug
-            region {
-              name
+class CreateTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.region = RegionFactory()
+        cls.tenant = TenantFactory()
+        cls.query = Template('''
+            mutation{
+                newSite(input: { name:"New Name", slug: "nsl1", region:"$regionId", tenant: "$tenantId"}) {
+                    site {
+                        name
+                        slug
+                        region {
+                            name
+                        }
+                        tenant {
+                            name
+                        }                   
+                    }
+                }
             }
-            tenant {
-              name
-            }
-            facility
-            asn
-            physicalAddress
-            shippingAddress
-            contactName
-            contactPhone
-            contactEmail
-            comments
-            }
-          }
-        }
-        '''
-        expected = {'newSite': {
-            'site': {'id': 'U2l0ZU5vZGU6MQ==', 'name': 'Site 3', 'slug': 'site3', 'region': {'name': 'Region18'},
-                     'tenant': {'name': 'Tenant 18'}, 'facility': 'A', 'asn': 12.0, 'physicalAddress': 'A1',
-                     'shippingAddress': 'A2', 'contactName': 'Name', 'contactPhone': '123',
-                     'contactEmail': 'a@gmail.com', 'comments': 'comments'}}}
+            ''').substitute(regionId=obj_to_global_id(cls.region),
+                            tenantId=obj_to_global_id(cls.tenant))
 
-        result = schema.execute(query)
+    def test_creating_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
 
-    def test_correct_fetch_of_site(self):
-        initialize_site('16')
-        query = '''
+    def test_creating_returns_data(self):
+        expected = {'newSite':
+                    {'site': {'name': 'New Name',
+                              'slug': "nsl1",
+                              'region': {'name': self.region.name},
+                              'tenant': {'name': self.tenant.name}}}}
+
+        result = schema.execute(self.query)
+        self.assertEquals(result.data, expected)
+
+    def test_creating_creates_it(self):
+        oldCount = Site.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(Site.objects.all().count(), oldCount + 1)
+
+
+class QueryMultipleTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = SiteFactory()
+        cls.second = SiteFactory()
+        cls.query = '''
         {
-          sites(id: "U2l0ZU5vZGU6MTY=") {
+          sites {
             edges {
               node {
                 id
-                name
-                slug
-                region {
-                  name
-                }
-                tenant {
-                  name
-                }
-                facility
-                asn
-                physicalAddress
-                shippingAddress
-                contactName
-                contactPhone
-                contactEmail
-                comments
               }
             }
           }
         }
         '''
-        expected = {'sites': {'edges': [{'node': {'id': 'U2l0ZU5vZGU6MTY=', 'name': 'Site Name 16', 'slug': 'site-name 16',
-                                                  'region': {'name': 'Region16'}, 'tenant': {'name': 'Tenant 16'},
-                                                  'facility': 'fac', 'asn': 12.0, 'physicalAddress': 'A1',
-                                                  'shippingAddress': 'A2', 'contactName': 'Name', 'contactPhone': '123',
-                                                  'contactEmail': 'a@gmail.com', 'comments': 'comment'}}]}}
 
-        result = schema.execute(query)
+    def test_querying_all_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
 
-    def test_update_site(self):
-        initialize_site('17')
-        query = '''
-        mutation{
-          updateSite(input: { id: "U2l0ZU5vZGU6MTc=" name:"Site 5", slug: "site6", facility: "A", asn: 12,
-          physicalAddress:"A1", shippingAddress: "A2",
-          contactName: "Name", contactPhone: "456",  contactEmail:"a@gmail.com", comments: "comments"}) {
-            site {
-            id
-            name
-            slug
-            region {
-              name
-            }
-            tenant {
-              name
-            }
-            facility
-            asn
-            physicalAddress
-            shippingAddress
-            contactName
-            contactPhone
-            contactEmail
-            comments
+    def test_querying_all_returns_two_results(self):
+        result = schema.execute(self.query)
+        self.assertEquals(len(result.data['sites']['edges']), 2)
+
+
+class QuerySingleTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = SiteFactory()
+        cls.second = SiteFactory()
+        cls.query = Template('''
+        {
+          sites(id: "$id") {
+            edges {
+              node {
+                name
+                region {
+                    name
+                }
+              }
             }
           }
         }
-        '''
-        expected = {'updateSite': {
-            'site': {'id': 'U2l0ZU5vZGU6MTc=', 'name': 'Site 5', 'slug': 'site6', 'region': {'name': 'Region17'},
-                     'tenant': {'name': 'Tenant 17'}, 'facility': 'A', 'asn': 12.0, 'physicalAddress': 'A1',
-                     'shippingAddress': 'A2', 'contactName': 'Name', 'contactPhone': '456',
-                     'contactEmail': 'a@gmail.com', 'comments': 'comments'}}}
+        ''').substitute(id=obj_to_global_id(cls.first))
 
-        result = schema.execute(query)
+    def test_querying_single_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
 
-    def test_delete_site(self):
-        initialize_site('15')
-        query = '''
+    def test_querying_single_returns_result(self):
+        result = schema.execute(self.query)
+        self.assertEquals(len(result.data['sites']['edges']), 1)
+
+    def test_querying_single_returns_expected_result(self):
+        result = schema.execute(self.query)
+        expected = {'sites':
+                    {'edges': [
+                        {'node': {'name': self.first.name,
+                                  'region': {'name': self.first.region.name}}}
+                    ]}}
+        self.assertEquals(result.data, expected)
+
+
+class UpdateTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = SiteFactory()
+        cls.tenant = TenantFactory()
+        cls.query = Template('''
         mutation{
-         deleteSite(input: { id:"U2l0ZU5vZGU6MTU=" }) {
+          updateSite(input: { id: "$id" name:"New Name", tenant: "$tenantId"}) {
             site {
-            id
-            name
-            slug
-            region {
-              name
-            }
-            tenant {
-              name
-            }
-            facility
-            asn
-            physicalAddress
-            shippingAddress
-            contactName
-            contactPhone
-            contactEmail
-            comments
+                name
+                tenant {
+                    name
+                }
             }
           }
         }
-        '''
-        expected = {'deleteSite': {
-            'site': {'id': 'U2l0ZU5vZGU6Tm9uZQ==', 'name': 'Site Name 15', 'slug': 'site-name 15', 'region': {'name': 'Region15'},
-                     'tenant': {'name': 'Tenant 15'}, 'facility': 'fac', 'asn': 12.0, 'physicalAddress': 'A1',
-                     'shippingAddress': 'A2', 'contactName': 'Name', 'contactPhone': '123',
-                     'contactEmail': 'a@gmail.com', 'comments': 'comment'}}}
+        ''').substitute(id=obj_to_global_id(cls.first),
+                        tenantId=obj_to_global_id(cls.tenant))
 
-        result = schema.execute(query)
+    def test_updating_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
+
+    def test_updating_doesnt_change_count(self):
+        oldCount = Site.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(Site.objects.all().count(), oldCount)
+
+    def test_updating_returns_updated_data(self):
+        expected = {'updateSite':
+                    {'site': {'name': 'New Name',
+                              'tenant': {'name': self.tenant.name}}}}
+        result = schema.execute(self.query)
+        self.assertEquals(result.data, expected)
+
+    def test_updating_alters_data(self):
+        schema.execute(self.query)
+        site = Site.objects.get(id=self.first.id)
+        self.assertEquals(site.name, 'New Name')
+        self.assertEquals(site.tenant.name, self.tenant.name)
+
+
+class DeleteTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = SiteFactory()
+        cls.query = Template('''
+        mutation{
+         deleteSite(input: { id:"$id" }) {
+            site {
+                id
+            }
+          }
+        }
+        ''').substitute(id=obj_to_global_id(cls.first))
+
+    def test_deleting_returns_no_error(self):
+        result = schema.execute(self.query)
+        assert not result.errors
+
+    def test_deleting_removes_a_type(self):
+        oldCount = Site.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(Site.objects.all().count(), oldCount - 1)

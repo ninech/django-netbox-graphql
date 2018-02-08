@@ -1,42 +1,87 @@
+from string import Template
 
 from graphene.test import Client
-from snapshottest import TestCase
-from netbox_graphql.tests.data import *
+from django.test import TestCase
+
+from dcim.models import Region
+
 from netbox_graphql.schema import schema
-from circuits.models import CircuitType, Circuit, Provider, CircuitTermination
+
+from netbox_graphql.tests.utils import obj_to_global_id
+from netbox_graphql.tests.factories.dcim_factories import RegionFactory
 
 
+class CreateTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.parent = RegionFactory()
+        cls.query = Template('''
+            mutation{
+                newRegion(input: { parent:"$parentId", name: "New Name", slug: "nsl1"}) {
+                    region{
+                        name
+                        slug
+                        parent{
+                            name
+                        }
+                    }
+                }
+            }
+            ''').substitute(parentId=obj_to_global_id(cls.parent))
+
+    def test_creating_returns_no_error(self):
+        result = schema.execute(self.query)
+        assert not result.errors
+
+    def test_creating_returns_data(self):
+        expected = {'newRegion':
+                    {'region': {'name': 'New Name',
+                                'slug': "nsl1",
+                                'parent': {'name': self.parent.name}}}}
+
+        result = schema.execute(self.query)
+        self.assertEquals(result.data, expected)
+
+    def test_creating_creates_it(self):
+        oldCount = Region.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(Region.objects.all().count(), oldCount + 1)
 
 
-class RegionTestCase(TestCase):
-    def test_creating_new_region(self):
-        initialize_region('11')
-        query = '''
-        mutation{
-          newRegion(input: { parent:"UmVnaW9uTm9kZToxMQ==", name: "Region 1", slug: "region-1"}) {
-            region{
-              id
-              name
-              slug
-              parent{
-                name
+class QueryMultipleTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = RegionFactory()
+        cls.second = RegionFactory()
+        cls.query = '''
+        {
+          regions {
+            edges {
+              node {
+                id
               }
             }
           }
         }
         '''
-        expected = {'newRegion': {'region': {'id': 'UmVnaW9uTm9kZTox', 'name': 'Region 1', 'slug': 'region-1',
-                                             'parent': {'name': 'Region11'}}}}
 
-        result = schema.execute(query)
+    def test_querying_all_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
 
-    def test_correct_fetch_of_region(self):
-        initialize_region('12')
-        query = '''
+    def test_querying_all_returns_two_results(self):
+        result = schema.execute(self.query)
+        self.assertEquals(len(result.data['regions']['edges']), 2)
+
+
+class QuerySingleTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = RegionFactory()
+        cls.second = RegionFactory()
+        cls.query = Template('''
         {
-          regions(id: "UmVnaW9uTm9kZToxMg==") {
+          regions(id: "$id") {
             edges {
               node {
                 name
@@ -45,23 +90,35 @@ class RegionTestCase(TestCase):
             }
           }
         }
-        '''
-        expected = {'regions': {
-            'edges': [{'node': {'name': 'Region12', 'slug': 'region-12'}}]}}
+        ''').substitute(id=obj_to_global_id(cls.first))
 
-        result = schema.execute(query)
+    def test_querying_single_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
 
-    def test_update_region(self):
-        initialize_region('13')
-        initialize_region('14')
-        query = '''
+    def test_querying_single_returns_result(self):
+        result = schema.execute(self.query)
+        self.assertEquals(len(result.data['regions']['edges']), 1)
+
+    def test_querying_single_returns_expected_result(self):
+        result = schema.execute(self.query)
+        expected = {'regions':
+                    {'edges': [
+                        {'node': {'name': self.first.name,
+                                  'slug': self.first.slug}}
+                    ]}}
+        self.assertEquals(result.data, expected)
+
+
+class UpdateTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = RegionFactory()
+        cls.parent = RegionFactory()
+        cls.query = Template('''
         mutation{
-          updateRegion(input: { id:"UmVnaW9uTm9kZToxMw==", parent:"UmVnaW9uTm9kZToxNA==", name: "Region C", slug: "region-c"}) {
+          updateRegion(input: { id:"$id", parent:"$parentId", slug: "nsl1"}) {
             region{
-              id
-              name
               slug
               parent{
                 name
@@ -69,30 +126,51 @@ class RegionTestCase(TestCase):
             }
           }
         }
-        '''
-        expected = {'updateRegion': {'region': {'id': 'UmVnaW9uTm9kZToxMw==', 'name': 'Region C', 'slug': 'region-c',
-                                                'parent': {'name': 'Region14'}}}}
+        ''').substitute(id=obj_to_global_id(cls.first),
+                        parentId=obj_to_global_id(cls.parent))
 
-        result = schema.execute(query)
+    def test_updating_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
 
-    def test_delete_region(self):
-        initialize_region('14')
-        query = '''
+    def test_updating_doesnt_change_count(self):
+        oldCount = Region.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(Region.objects.all().count(), oldCount)
+
+    def test_updating_returns_updated_data(self):
+        expected = {'updateRegion':
+                    {'region': {'slug': 'nsl1',
+                                'parent': {'name': self.parent.name}}}}
+        result = schema.execute(self.query)
+        self.assertEquals(result.data, expected)
+
+    def test_updating_alters_data(self):
+        schema.execute(self.query)
+        region = Region.objects.get(id=self.first.id)
+        self.assertEquals(region.slug, 'nsl1')
+        self.assertEquals(region.parent.name, self.parent.name)
+
+
+class DeleteTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.first = RegionFactory()
+        cls.query = Template('''
         mutation{
-          deleteRegion(input: { id:"UmVnaW9uTm9kZToxNA=="}) {
+          deleteRegion(input: { id:"$id"}) {
             region{
               id
-              name
-              slug
             }
           }
         }
-        '''
-        expected = {'deleteRegion': {'region': {
-            'id': 'UmVnaW9uTm9kZTpOb25l', 'name': 'Region14', 'slug': 'region-14'}}}
+        ''').substitute(id=obj_to_global_id(cls.first))
 
-        result = schema.execute(query)
+    def test_deleting_returns_no_error(self):
+        result = schema.execute(self.query)
         assert not result.errors
-        assert result.data == expected
+
+    def test_deleting_removes_a_type(self):
+        oldCount = Region.objects.all().count()
+        schema.execute(self.query)
+        self.assertEquals(Region.objects.all().count(), oldCount - 1)
