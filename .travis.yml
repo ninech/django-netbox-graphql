@@ -13,3 +13,9 @@ script:
 after_script:
   - docker-compose down
   
+deploy:
+  provider: pypi
+  user: "${PYPI_USERNAME}"
+  password: "${PYPI_PASSWORD}"
+  on:
+    tags: true
