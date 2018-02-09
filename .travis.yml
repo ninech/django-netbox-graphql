@@ -2,20 +2,24 @@ sudo: required
 language: python
 
 services:
-  - docker
+- docker
 
 install:
-  - docker-compose build
+- docker-compose build
 
 script:
-  - docker-compose run netbox ./manage.py test
+- docker-compose run netbox ./manage.py test
 
 after_script:
-  - docker-compose down
-  
+- docker-compose down
+
 deploy:
   provider: pypi
   user: "${PYPI_USERNAME}"
   password: "${PYPI_PASSWORD}"
   on:
     tags: true
+
+notifications:
+  slack:
+    secure: dj82ihmXsHHaG9tI6uBDZBFNLH2Ira1OVeCAfBPjdSWXcPQhWOweFX2/0PhDCorOc2feZUoDypWaCWqawPJFLFWqiCgoGxrTbbZsOJYHE9XzVnT3YDl7vGqQwunsn35yZe/7tGG+qPV1Am9/HRPfbg5MUqmNsJHqRTFuLj+qsGhXjbVa2FI5T2Tb/zSp6eC9nBz7cMzXW5lEwzAiB3eMZnL/qvsB07ftpcwaqGksy8zzk0KK6XDf7+94p8q1V5850VwQb78DZQw/KCjdAXkw0dwN9J9KOiPmB9r1Gb1cZIB9xeR/FDbomIu84iA6ZdGQqIG/2TI9hDQalRw+cRcJwqD/JVQziPZxFeVRg6DeonA8Q43CR9TtTYIglqQPzSrHWuZoFS099ixam9/OrxRX90tvRW/GqFSYmP1OxhE0F6ZOxsprVAY1w6FyP0KRTOLdYprNwl31v36Dy2ARuC9wgLLeEQbexH2GWWz8hnW66kNZBYoYy/JBCwnaMveDnAp8DfhcykGNw2xlAMMvBH89nmuxOEvdsSRDriZDEF99MJw/uoS4/LdP4/7P8hA+27tFHxVy8rMGtK/lE4TYvLuLCqoZ/0CZx5XhiSNCIjY5G6IlqTDbxI9jnqNoYy01uwA+vKXP1ixH8Ltlc8K1TtXicfY5JlP+0vETH+BQrT5rmtI=
