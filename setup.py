@@ -1,15 +1,18 @@
 import os
 from setuptools import find_packages, setup
 
-with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
+with open(os.path.join(os.path.dirname(__file__), 'README.rst', 'r')) as readme:
     README = readme.read()
+
+with open(os.path.join(os.path.dirname(__file__), 'VERSION', 'r')) as version_file:
+    VERSION = version_file.read().replace('\n', '')
 
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-netbox-graphql',
-    version=os.getenv('TRAVIS_TAG', '0.0.0'),
+    version=VERSION,
     packages=find_packages(),
     include_package_data=True,
     license='MIT',
