@@ -1,10 +1,10 @@
 import os
 from setuptools import find_packages, setup
 
-with open(os.path.join(os.path.dirname(__file__), 'README.rst', 'r')) as readme:
+with open(os.path.join(os.path.dirname(__file__), 'README.rst'), 'r') as readme:
     README = readme.read()
 
-with open(os.path.join(os.path.dirname(__file__), 'VERSION', 'r')) as version_file:
+with open(os.path.join(os.path.dirname(__file__), 'VERSION'), 'r') as version_file:
     VERSION = version_file.read().replace('\n', '')
 
 # allow setup.py to be run from any path
